@@ -63,7 +63,7 @@ func (v *Layout) constrain(prio casso.Priority, cell casso.Constraint) error {
 
 func (v *Layout) SetX(x int) error {
 	if !v.xo {
-		if err := v.app.solver.Edit(v.x, casso.Medium); err != nil {
+		if err := v.app.solver.Edit(v.x, casso.Strong); err != nil {
 			return err
 		}
 		v.xo = true
@@ -73,7 +73,7 @@ func (v *Layout) SetX(x int) error {
 
 func (v *Layout) SetY(y int) error {
 	if !v.yo {
-		if err := v.app.solver.Edit(v.y, casso.Medium); err != nil {
+		if err := v.app.solver.Edit(v.y, casso.Strong); err != nil {
 			return err
 		}
 		v.yo = true
@@ -83,7 +83,7 @@ func (v *Layout) SetY(y int) error {
 
 func (v *Layout) SetWidth(w int) error {
 	if !v.wo {
-		if err := v.app.solver.Edit(v.w, casso.Weak); err != nil {
+		if err := v.app.solver.Edit(v.w, casso.Strong); err != nil {
 			return err
 		}
 		v.wo = true
@@ -93,7 +93,7 @@ func (v *Layout) SetWidth(w int) error {
 
 func (v *Layout) SetHeight(h int) error {
 	if !v.ho {
-		if err := v.app.solver.Edit(v.h, casso.Weak); err != nil {
+		if err := v.app.solver.Edit(v.h, casso.Strong); err != nil {
 			return err
 		}
 		v.ho = true
