@@ -82,6 +82,13 @@ func SpaceBetween(a, b Box, spacing float64) []casso.Constraint {
 	}
 }
 
+func SameWidth(a, b Box) []casso.Constraint {
+	// a.width == b.width
+	return []casso.Constraint{
+		casso.NewConstraint(casso.EQ, 0, a.w.T(1), b.w.T(-1)),
+	}
+}
+
 func Apply(solver *casso.Solver, priority casso.Priority, constraints ...casso.Constraint) ([]casso.Symbol, error) {
 	tags := make([]casso.Symbol, 0, len(constraints))
 	for _, constraint := range constraints {
@@ -117,19 +124,22 @@ func TestBoxInside(t *testing.T) {
 	_, err = Apply(solver, casso.Required, Inside(parent, right, 10)...)
 	require.NoError(t, err)
 
-	_, err = Apply(solver, casso.Weak, FillX(parent, left, 0.5)...)
+	_, err = Apply(solver, casso.Medium, FillX(parent, left, 0.5)...)
 	require.NoError(t, err)
 
-	_, err = Apply(solver, casso.Weak, FillX(parent, right, 0.5)...)
+	_, err = Apply(solver, casso.Medium, FillX(parent, right, 0.5)...)
 	require.NoError(t, err)
 
-	_, err = Apply(solver, casso.Weak, FillY(parent, left, 1)...)
+	_, err = Apply(solver, casso.Medium, FillY(parent, left, 1)...)
 	require.NoError(t, err)
 
-	_, err = Apply(solver, casso.Weak, FillY(parent, right, 1)...)
+	_, err = Apply(solver, casso.Medium, FillY(parent, right, 1)...)
 	require.NoError(t, err)
 
 	_, err = Apply(solver, casso.Required, SpaceBetween(left, right, 10)...)
+	require.NoError(t, err)
+
+	_, err = Apply(solver, casso.Required, SameWidth(left, right)...)
 	require.NoError(t, err)
 
 	fmt.Println(parent.X(), parent.Y(), parent.W(), parent.H())
