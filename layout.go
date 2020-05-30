@@ -8,6 +8,9 @@ import (
 type Layout struct {
 	app *App
 
+	// FIXME(kenta): add origin x
+	// FIXME(kenta): add origin y
+
 	x casso.Symbol // x
 	y casso.Symbol // y
 	w casso.Symbol // width
@@ -52,8 +55,8 @@ func (v *Layout) Render(screen tcell.Screen) {
 	)
 }
 
-func (v *Layout) constrain(prio casso.Priority, cell casso.Constraint) error {
-	tag, err := v.app.solver.AddConstraintWithPriority(prio, cell)
+func (v *Layout) constrain(priority casso.Priority, cell casso.Constraint) error {
+	tag, err := v.app.solver.AddConstraintWithPriority(priority, cell)
 	if err != nil {
 		return err
 	}

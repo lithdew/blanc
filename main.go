@@ -66,7 +66,7 @@ loop:
 		select {
 		case <-ch:
 			break loop
-		case <-time.After(24 * time.Millisecond):
+		case <-time.After(12 * time.Millisecond):
 		}
 
 		screen.Clear()
