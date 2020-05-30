@@ -11,6 +11,8 @@ github.com/lithdew/casso v0.0.0-20200530100126-f19113f25051 h1:VI4tTyAFKIA7d9Rfz
 github.com/lithdew/casso v0.0.0-20200530100126-f19113f25051/go.mod h1:iaGbC3JZCbafAF9UkQTn2To3bMVOkTXNFTfS2yRvclM=
 github.com/lithdew/casso v0.0.0-20200530160555-3fba2203274a h1:pnLrwKmINxsmw7r0nEygH5MOF+o8E37uBpX/sGwzhJQ=
 github.com/lithdew/casso v0.0.0-20200530160555-3fba2203274a/go.mod h1:iaGbC3JZCbafAF9UkQTn2To3bMVOkTXNFTfS2yRvclM=
+github.com/lithdew/casso v0.0.0-20200530184154-1f9f4b99216e h1:SaWxw32EI0P149k4hgGSCvXINFVY+OVeP/i6Z0l2JfU=
+github.com/lithdew/casso v0.0.0-20200530184154-1f9f4b99216e/go.mod h1:iaGbC3JZCbafAF9UkQTn2To3bMVOkTXNFTfS2yRvclM=
 github.com/lucasb-eyer/go-colorful v1.0.2 h1:mCMFu6PgSozg9tDNMMK3g18oJBX7oYGrC09mS6CXfO4=
 github.com/lucasb-eyer/go-colorful v1.0.2/go.mod h1:0MS4r+7BZKSJ5mw4/S5MPN+qHFF1fYclkSPilDOKW0s=
 github.com/mattn/go-runewidth v0.0.4 h1:2BvfKmzob6Bmd4YsL0zygOqfdFnK7GR4QL06Do4/p7Y=
