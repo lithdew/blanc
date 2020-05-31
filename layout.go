@@ -97,10 +97,6 @@ func (b Box) Fixed(priority casso.Priority) {
 // child.x + child.w == parent.x + parent.w - 2 * padding
 func Inside(parent, child Box, padding float64) []casso.Constraint {
 	return []casso.Constraint{
-		casso.NewConstraint(casso.GTE, 0, child.w.T(1)),
-		casso.NewConstraint(casso.GTE, 0, child.h.T(1)),
-		casso.NewConstraint(casso.GTE, 0, parent.w.T(1)),
-		casso.NewConstraint(casso.GTE, 0, parent.h.T(1)),
 		casso.NewConstraint(casso.GTE, -padding, child.x.T(1), parent.x.T(-1)),
 		casso.NewConstraint(casso.GTE, -padding, child.y.T(1), parent.y.T(-1)),
 		casso.NewConstraint(casso.LTE, 2*padding, child.w.T(1), parent.w.T(-1)),
