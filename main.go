@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"github.com/gdamore/tcell"
 	"github.com/gdamore/tcell/encoding"
+	"github.com/lithdew/casso"
 	"log"
 	"time"
 )
@@ -12,6 +12,27 @@ func check(err error) {
 	if err != nil {
 		log.Panic(err)
 	}
+}
+
+var solver = casso.NewSolver()
+var parent = NewBox(solver)
+var left = NewBox(solver)
+var right = NewBox(solver)
+
+func InitLayout() *Layout {
+	a := New(solver)
+	a.Apply(casso.Required, Inside(parent, left, 2)...)
+	a.Apply(casso.Required, Inside(parent, right, 2)...)
+	a.Apply(casso.Medium,
+		FillX(parent, left, 0.5),
+		FillX(parent, right, 0.5),
+		FillY(parent, left, 1),
+		FillY(parent, right, 1),
+	)
+	a.Apply(casso.Required, SpaceBetween(left, right, 2))
+	a.Apply(casso.Required, SameWidth(left, right))
+	check(a.Finalize())
+	return &a
 }
 
 func main() {
@@ -23,19 +44,15 @@ func main() {
 	check(screen.Init())
 	defer screen.Fini()
 
-	app, err := NewApp(screen)
-	check(err)
+	parent.Fixed(casso.Medium)
 
-	v := NewLayout()
-	check(app.Add(v))
+	width, height := screen.Size()
+	check(parent.SetX(0))
+	check(parent.SetY(0))
+	check(parent.SetW(float64(width)))
+	check(parent.SetH(float64(height)))
 
-	check(v.SetY(5))
-	check(v.SetPaddingTop(2))
-	check(v.SetPaddingBottom(2))
-	check(v.SetPaddingLeft(2))
-	check(v.SetPaddingRight(2))
-	check(v.FillX())
-	check(v.FillY())
+	layout := InitLayout()
 
 	ch := make(chan struct{})
 
@@ -46,20 +63,35 @@ func main() {
 			switch ev := ev.(type) {
 			case *tcell.EventKey:
 				switch ev.Key() {
+				case tcell.KeyCtrlH:
+					if layout != nil {
+						layout.Destroy()
+						layout = nil
+					} else {
+						layout = InitLayout()
+					}
 				case tcell.KeyCtrlC:
 					return
 				case tcell.KeyCtrlL:
 					screen.Sync()
-					sw, sh := screen.Size()
-					check(app.Resize(sw, sh))
+
+					width, height := screen.Size()
+					check(parent.SetW(float64(width)))
+					check(parent.SetH(float64(height)))
 				}
 			case *tcell.EventResize:
 				screen.Sync()
-				sw, sh := screen.Size()
-				check(app.Resize(sw, sh))
+
+				width, height := screen.Size()
+				check(parent.SetW(float64(width)))
+				check(parent.SetH(float64(height)))
 			}
 		}
 	}()
+
+	drawbox := func(b Box) {
+		box(screen, int(b.X()), int(b.Y()), int(b.X()+b.W())-1, int(b.Y()+b.H())-1, tcell.StyleDefault, ' ')
+	}
 
 loop:
 	for {
@@ -71,9 +103,15 @@ loop:
 
 		screen.Clear()
 
-		puts(screen, tcell.StyleDefault, 0, 0, fmt.Sprintf("[W]: %d", app.Width()))
-		puts(screen, tcell.StyleDefault, 0, 1, fmt.Sprintf("[H]: %d", app.Height()))
+		drawbox(parent)
+		drawbox(left)
+		drawbox(right)
 
-		app.Render(screen)
+		screen.Show()
+
+		//puts(screen, tcell.StyleDefault, 0, 0, fmt.Sprintf("[W]: %d", app.Width()))
+		//puts(screen, tcell.StyleDefault, 0, 1, fmt.Sprintf("[H]: %d", app.Height()))
+
+		//app.Render(screen)
 	}
 }

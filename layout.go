@@ -1,161 +1,136 @@
 package main
 
 import (
-	"github.com/gdamore/tcell"
+	"fmt"
 	"github.com/lithdew/casso"
 )
 
 type Layout struct {
-	app *App
-
-	// FIXME(kenta): add origin x
-	// FIXME(kenta): add origin y
-
-	x casso.Symbol // x
-	y casso.Symbol // y
-	w casso.Symbol // width
-	h casso.Symbol // height
-
-	pt casso.Symbol // padding top
-	pb casso.Symbol // padding bottom
-	pl casso.Symbol // padding left
-	pr casso.Symbol // padding right
-
-	tags []casso.Symbol
-
-	xo bool
-	yo bool
-	wo bool
-	ho bool
+	solver *casso.Solver
+	tags   []casso.Symbol
+	err    error
 }
 
-func NewLayout() *Layout {
-	return &Layout{
-		x: casso.New(),
-		y: casso.New(),
-		w: casso.New(),
-		h: casso.New(),
+func New(solver *casso.Solver) Layout {
+	return Layout{solver: solver}
+}
 
-		pt: casso.New(),
-		pb: casso.New(),
-		pl: casso.New(),
-		pr: casso.New(),
+func (a *Layout) Apply(priority casso.Priority, constraints ...casso.Constraint) {
+	if a.err != nil {
+		return
+	}
+	for _, constraint := range constraints {
+		tag, err := a.solver.AddConstraintWithPriority(priority, constraint)
+		if err != nil {
+			a.err = err
+			return
+		}
+		a.tags = append(a.tags, tag)
 	}
 }
 
-func (v *Layout) Render(screen tcell.Screen) {
-	box(
-		screen,
-		int(v.app.solver.Val(v.x)),
-		int(v.app.solver.Val(v.y)),
-		int(v.app.solver.Val(v.x)+v.app.solver.Val(v.w)),
-		int(v.app.solver.Val(v.y)+v.app.solver.Val(v.h)),
-		tcell.StyleDefault,
-		' ',
-	)
-}
-
-func (v *Layout) constrain(priority casso.Priority, cell casso.Constraint) error {
-	tag, err := v.app.solver.AddConstraintWithPriority(priority, cell)
+func (a *Layout) Finalize() error {
+	err := a.err
 	if err != nil {
-		return err
+		a.Destroy()
 	}
-	v.tags = append(v.tags, tag)
-	return nil
+	return err
 }
 
-func (v *Layout) SetX(x int) error {
-	if !v.xo {
-		if err := v.app.solver.Edit(v.x, casso.Strong); err != nil {
-			return err
-		}
-		v.xo = true
+func (a *Layout) Destroy() {
+	for _, tag := range a.tags {
+		_ = a.solver.RemoveConstraint(tag)
 	}
-	return v.app.solver.Suggest(v.x, float64(x))
+	a.tags = a.tags[:0]
 }
 
-func (v *Layout) SetY(y int) error {
-	if !v.yo {
-		if err := v.app.solver.Edit(v.y, casso.Strong); err != nil {
-			return err
-		}
-		v.yo = true
-	}
-	return v.app.solver.Suggest(v.y, float64(y))
+type Box struct {
+	x casso.Symbol
+	y casso.Symbol
+	w casso.Symbol
+	h casso.Symbol
+
+	solver *casso.Solver
+	tags   []casso.Symbol
 }
 
-func (v *Layout) SetWidth(w int) error {
-	if !v.wo {
-		if err := v.app.solver.Edit(v.w, casso.Strong); err != nil {
-			return err
-		}
-		v.wo = true
-	}
-	return v.app.solver.Suggest(v.w, float64(w))
-}
-
-func (v *Layout) SetHeight(h int) error {
-	if !v.ho {
-		if err := v.app.solver.Edit(v.h, casso.Strong); err != nil {
-			return err
-		}
-		v.ho = true
-	}
-	return v.app.solver.Suggest(v.h, float64(h))
-}
-
-// w == screen-width
-func (v *Layout) FillX() error {
-	return v.constrain(casso.Medium, casso.NewConstraint(casso.EQ, 1, v.w.T(1), v.app.sw.T(-1)))
-}
-
-// h == screen_height
-func (v *Layout) FillY() error {
-	return v.constrain(casso.Medium, casso.NewConstraint(casso.EQ, 1, v.h.T(1), v.app.sh.T(-1)))
-}
-
-func (v *Layout) SetPaddingTop(h int) error    { return v.app.solver.Suggest(v.pt, float64(h)) }
-func (v *Layout) SetPaddingBottom(h int) error { return v.app.solver.Suggest(v.pb, float64(h)) }
-func (v *Layout) SetPaddingLeft(h int) error   { return v.app.solver.Suggest(v.pl, float64(h)) }
-func (v *Layout) SetPaddingRight(h int) error  { return v.app.solver.Suggest(v.pr, float64(h)) }
-
-func (v *Layout) Init(app *App) error {
-	v.app = app
-
-	if err := app.solver.Edit(v.pt, casso.Strong); err != nil {
-		return err
-	}
-	if err := app.solver.Edit(v.pb, casso.Strong); err != nil {
-		return err
-	}
-	if err := app.solver.Edit(v.pl, casso.Strong); err != nil {
-		return err
-	}
-	if err := app.solver.Edit(v.pr, casso.Strong); err != nil {
-		return err
-	}
-
-	// w >= 0
-	// h >= 0
-	// x >= padding_left (FIXME)
-	// y >= padding_top (FIXME)
-	// x + w <= screen_width - 1 - padding_right
-	// y + h <= screen_height - 1 - padding_bottom
+func NewBox(solver *casso.Solver) Box {
+	box := Box{solver: solver, x: casso.New(), y: casso.New(), w: casso.New(), h: casso.New()}
 
 	constraints := []casso.Constraint{
-		casso.NewConstraint(casso.GTE, 0, v.w.T(1)),
-		casso.NewConstraint(casso.GTE, 0, v.h.T(1)),
-		casso.NewConstraint(casso.GTE, 0, v.x.T(1), v.pl.T(-1)),
-		casso.NewConstraint(casso.GTE, 0, v.y.T(1), v.pt.T(-1)),
-		casso.NewConstraint(casso.LTE, 1, v.x.T(1), v.w.T(1), v.pr.T(1), app.sw.T(-1)),
-		casso.NewConstraint(casso.LTE, 1, v.y.T(1), v.h.T(1), v.pb.T(1), app.sh.T(-1)),
+		Nonzero(box.x),
+		Nonzero(box.y),
+		Nonzero(box.w),
+		Nonzero(box.h),
 	}
 
 	for _, constraint := range constraints {
-		if err := v.constrain(casso.Required, constraint); err != nil {
-			return err
+		if _, err := solver.AddConstraint(constraint); err != nil {
+			panic(fmt.Errorf("failed to add basic constraints to box: %w", err))
 		}
 	}
 
-	return nil
+	return box
+}
+
+func (b Box) X() float64 { return b.solver.Val(b.x) }
+func (b Box) Y() float64 { return b.solver.Val(b.y) }
+func (b Box) W() float64 { return b.solver.Val(b.w) }
+func (b Box) H() float64 { return b.solver.Val(b.h) }
+
+func (b *Box) SetX(x float64) error { return b.solver.Suggest(b.x, x) }
+func (b *Box) SetY(y float64) error { return b.solver.Suggest(b.y, y) }
+func (b *Box) SetW(w float64) error { return b.solver.Suggest(b.w, w) }
+func (b *Box) SetH(h float64) error { return b.solver.Suggest(b.h, h) }
+
+func (b Box) Fixed(priority casso.Priority) {
+	_ = b.solver.Edit(b.x, priority)
+	_ = b.solver.Edit(b.y, priority)
+	_ = b.solver.Edit(b.w, priority)
+	_ = b.solver.Edit(b.h, priority)
+}
+
+// child.x >= parent.x + padding
+// child.y >= parent.y + padding
+// child.width <= parent.width - 2 * padding
+// child.height <= parent.height - 2 * padding
+// child.x + child.w == parent.x + parent.w - 2 * padding
+func Inside(parent, child Box, padding float64) []casso.Constraint {
+	return []casso.Constraint{
+		casso.NewConstraint(casso.GTE, 0, child.w.T(1)),
+		casso.NewConstraint(casso.GTE, 0, child.h.T(1)),
+		casso.NewConstraint(casso.GTE, 0, parent.w.T(1)),
+		casso.NewConstraint(casso.GTE, 0, parent.h.T(1)),
+		casso.NewConstraint(casso.GTE, -padding, child.x.T(1), parent.x.T(-1)),
+		casso.NewConstraint(casso.GTE, -padding, child.y.T(1), parent.y.T(-1)),
+		casso.NewConstraint(casso.LTE, 2*padding, child.w.T(1), parent.w.T(-1)),
+		casso.NewConstraint(casso.LTE, 2*padding, child.h.T(1), parent.h.T(-1)),
+		casso.NewConstraint(casso.LTE, padding, child.x.T(1), child.w.T(1), parent.x.T(-1), parent.w.T(-1)),
+	}
+}
+
+// symbol >= 0
+func Nonzero(symbol casso.Symbol) casso.Constraint {
+	return casso.NewConstraint(casso.GTE, 0, symbol.T(1))
+}
+
+// child.width == ratio * parent.width
+func FillX(parent, child Box, ratio float64) casso.Constraint {
+	return casso.NewConstraint(casso.EQ, 0, child.w.T(1), parent.w.T(-ratio))
+}
+
+// child.width == ratio * parent.width
+func FillY(parent, child Box, ratio float64) casso.Constraint {
+
+	return casso.NewConstraint(casso.EQ, 0, child.h.T(1), parent.h.T(-ratio))
+}
+
+// a.x + a.width + spacing == b.x
+func SpaceBetween(a, b Box, spacing float64) casso.Constraint {
+	return casso.NewConstraint(casso.EQ, spacing, a.x.T(1), a.w.T(1), b.x.T(-1))
+}
+
+// a.width == b.width
+func SameWidth(a, b Box) casso.Constraint {
+	return casso.NewConstraint(casso.EQ, 0, a.w.T(1), b.w.T(-1))
 }
