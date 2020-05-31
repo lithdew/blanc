@@ -92,16 +92,14 @@ func (b Box) Fixed(priority casso.Priority) {
 
 // child.x >= parent.x + padding
 // child.y >= parent.y + padding
-// child.width <= parent.width - 2 * padding
-// child.height <= parent.height - 2 * padding
-// child.x + child.w == parent.x + parent.w - 2 * padding
+// child.x + child.w == parent.x + parent.w - padding
+// childy + child.h == parent.y + parent.h - padding
 func Inside(parent, child Box, padding float64) []casso.Constraint {
 	return []casso.Constraint{
 		casso.NewConstraint(casso.GTE, -padding, child.x.T(1), parent.x.T(-1)),
 		casso.NewConstraint(casso.GTE, -padding, child.y.T(1), parent.y.T(-1)),
-		casso.NewConstraint(casso.LTE, 2*padding, child.w.T(1), parent.w.T(-1)),
-		casso.NewConstraint(casso.LTE, 2*padding, child.h.T(1), parent.h.T(-1)),
 		casso.NewConstraint(casso.LTE, padding, child.x.T(1), child.w.T(1), parent.x.T(-1), parent.w.T(-1)),
+		casso.NewConstraint(casso.LTE, padding, child.y.T(1), child.h.T(1), parent.y.T(-1), parent.h.T(-1)),
 	}
 }
 
@@ -117,7 +115,6 @@ func FillX(parent, child Box, ratio float64) casso.Constraint {
 
 // child.width == ratio * parent.width
 func FillY(parent, child Box, ratio float64) casso.Constraint {
-
 	return casso.NewConstraint(casso.EQ, 0, child.h.T(1), parent.h.T(-ratio))
 }
 
