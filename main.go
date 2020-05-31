@@ -31,6 +31,8 @@ func InitLayout() *Layout {
 	)
 	a.Required(SpaceBetween(left, right, 2))
 	a.Required(SameWidth(left, right))
+	//a.Required(MinWidth(left, 50))
+	//a.Required(MaxWidth(left, 50))
 	check(a.Finalize())
 	return &a
 }

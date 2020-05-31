@@ -132,3 +132,13 @@ func SpaceBetween(a, b Box, spacing float64) casso.Constraint {
 func SameWidth(a, b Box) casso.Constraint {
 	return casso.NewConstraint(casso.EQ, 0, a.w.T(1), b.w.T(-1))
 }
+
+// box.width >= width
+func MinWidth(box Box, width float64) casso.Constraint {
+	return casso.NewConstraint(casso.GTE, -width, box.w.T(1))
+}
+
+// box.width <= width
+func MaxWidth(box Box, width float64) casso.Constraint {
+	return casso.NewConstraint(casso.LTE, -width, box.w.T(1))
+}
