@@ -29,7 +29,6 @@ func main() {
 	resize := func() {
 		width, height := screen.Size()
 		container = layout.Rect{W: width, H: height}
-		container = container.Pad(1)
 
 		panels, err = layout.SplitHorizontally(
 			container,
@@ -73,7 +72,7 @@ func main() {
 	}()
 
 	drawrect := func(r layout.Rect) {
-		box(screen, r.X, r.Y, r.X+r.W-1, r.Y+r.H-1, 0, ' ')
+		box(screen, r.X, r.Y, r.X+r.W-1, r.Y+r.H-1, 0, UnicodeFrame)
 	}
 
 loop:
