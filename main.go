@@ -23,32 +23,31 @@ func main() {
 	check(screen.Init())
 	defer screen.Fini()
 
-	// layout ui
-
 	var container layout.Rect
-	var rects []layout.Rect
+	var panels []layout.Rect
 
 	resize := func() {
 		width, height := screen.Size()
 		container = layout.Rect{W: width, H: height}
+		container = container.Pad(1)
 
-		rects, err = layout.SplitHorizontally(
+		panels, err = layout.SplitHorizontally(
 			container,
-			layout.Ratio(1, 3),
+			layout.Length(25),
+			layout.Max(width),
+			layout.Length(25),
+		)
+		check(err)
+
+		middle, err := layout.SplitVertically(
+			panels[1],
+			layout.Length(4),
 			layout.Ratio(1, 3),
 			layout.Ratio(1, 3),
 		)
 		check(err)
 
-		smaller, err := layout.SplitVertically(
-			rects[1],
-			layout.Ratio(1, 4),
-			layout.Ratio(2, 4),
-			layout.Ratio(1, 4),
-		)
-		check(err)
-
-		rects = append(rects, smaller...)
+		panels = append(panels, middle...)
 	}
 
 	ch := make(chan struct{})
@@ -74,7 +73,7 @@ func main() {
 	}()
 
 	drawrect := func(r layout.Rect) {
-		box(screen, r.X, r.Y, r.X+r.W-1, r.Y+r.H-1, tcell.StyleDefault, ' ')
+		box(screen, r.X, r.Y, r.X+r.W-1, r.Y+r.H-1, 0, ' ')
 	}
 
 loop:
@@ -88,7 +87,7 @@ loop:
 		screen.Clear()
 
 		drawrect(container)
-		for _, rect := range rects {
+		for _, rect := range panels {
 			drawrect(rect)
 		}
 
