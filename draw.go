@@ -16,6 +16,8 @@ var TcellFrame = [...]rune{
 	tcell.RuneVLine,
 }
 
+var Other = [...]rune{'┌', '┐', '└', '┘', '─', '─', '│', '│'}
+
 var (
 	AsciiFrame       = [...]rune{'-', '-', '-', '-', '-', '-', '|', '|'}
 	UnicodeFrame     = [...]rune{'┏', '┓', '┗', '┛', '━', '━', '┃', '┃'}
@@ -46,11 +48,11 @@ func box(s tcell.Screen, x1, y1, x2, y2 int, style tcell.Style, frames [8]rune) 
 		s.SetContent(x1, y2, frames[2], nil, style)
 		s.SetContent(x2, y2, frames[3], nil, style)
 	}
-	//for row := y1 + 1; row < y2; row++ {
-	//	for col := x1 + 1; col < x2; col++ {
-	//		s.SetContent(col, row, r, nil, style)
-	//	}
-	//}
+	for row := y1 + 1; row < y2; row++ {
+		for col := x1 + 1; col < x2; col++ {
+			s.SetContent(col, row, ' ', nil, style)
+		}
+	}
 }
 
 func puts(s tcell.Screen, style tcell.Style, x, y int, str string) {
