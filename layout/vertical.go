@@ -30,22 +30,22 @@ func SplitVertically(r Rect, constraints ...Constraint) ([]Rect, error) {
 		elements[i].h = casso.New()
 
 		layout.Required(GTE(0, elements[i].h.T(1)))
-		layout.Required(GTE(-float64(r.y), elements[i].y.T(1)))
-		layout.Required(LTE(-float64(r.y+r.h), elements[i].y.T(1), elements[i].h.T(1)))
+		layout.Required(GTE(-float64(r.Y), elements[i].y.T(1)))
+		layout.Required(LTE(-float64(r.Y+r.H), elements[i].y.T(1), elements[i].h.T(1)))
 
 		if i > 0 {
 			layout.Required(EQ(0, elements[i-1].y.T(1), elements[i-1].h.T(1), elements[i].y.T(-1)))
 		}
 
 		if i == 0 {
-			layout.Required(EQ(-float64(r.y), elements[0].y.T(1)))
+			layout.Required(EQ(-float64(r.Y), elements[0].y.T(1)))
 		}
 
 		if i == len(constraints)-1 {
-			layout.Required(EQ(-float64(r.y+r.h), elements[len(elements)-1].y.T(1), elements[len(elements)-1].h.T(1)))
+			layout.Required(EQ(-float64(r.Y+r.H), elements[len(elements)-1].y.T(1), elements[len(elements)-1].h.T(1)))
 		}
 
-		layout.Weak(constraints[i](r.h, elements[i].h))
+		layout.Weak(constraints[i](r.H, elements[i].h))
 	}
 
 	if err := layout.Finalize(); err != nil {
@@ -53,10 +53,10 @@ func SplitVertically(r Rect, constraints ...Constraint) ([]Rect, error) {
 	}
 
 	for i := 0; i < len(elements); i++ {
-		results[i].x = r.x
-		results[i].y = int(solver.Val(elements[i].y))
-		results[i].w = r.w
-		results[i].h = int(solver.Val(elements[i].h))
+		results[i].X = r.X
+		results[i].Y = int(solver.Val(elements[i].y))
+		results[i].W = r.W
+		results[i].H = int(solver.Val(elements[i].h))
 	}
 
 	return results, nil

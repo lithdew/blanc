@@ -1,71 +1,71 @@
 package layout
 
 type Rect struct {
-	x int
-	y int
-	w int
-	h int
+	X int
+	Y int
+	W int
+	H int
 }
 
 func (r Rect) PadLeft(pad int) Rect {
-	if r.w < pad {
+	if r.W < pad {
 		return r
 	}
-	r.x += pad
-	r.w -= pad
+	r.X += pad
+	r.W -= pad
 	return r
 }
 
 func (r Rect) PadRight(pad int) Rect {
-	if r.w < pad {
+	if r.W < pad {
 		return r
 	}
-	r.w -= pad
+	r.W -= pad
 	return r
 }
 
 func (r Rect) PadHorizontal(pad int) Rect {
-	if r.w < 2*pad {
+	if r.W < 2*pad {
 		return r
 	}
-	r.x += pad
-	r.w -= 2 * pad
+	r.X += pad
+	r.W -= 2 * pad
 	return r
 }
 
 func (r Rect) PadTop(pad int) Rect {
-	if r.h < pad {
+	if r.H < pad {
 		return r
 	}
-	r.y += pad
-	r.h -= pad
+	r.Y += pad
+	r.H -= pad
 	return r
 }
 
 func (r Rect) PadBottom(pad int) Rect {
-	if r.h < pad {
+	if r.H < pad {
 		return r
 	}
-	r.h -= pad
+	r.H -= pad
 	return r
 }
 
 func (r Rect) PadVertical(pad int) Rect {
-	if r.h < 2*pad {
+	if r.H < 2*pad {
 		return r
 	}
-	r.y += pad
-	r.h -= 2 * pad
+	r.Y += pad
+	r.H -= 2 * pad
 	return r
 }
 
 func (r Rect) Pad(pad int) Rect {
-	if r.w < 2*pad || r.h < 2*pad {
+	if r.W < 2*pad || r.H < 2*pad {
 		return r
 	}
-	r.x += pad
-	r.y += pad
-	r.w -= 2 * pad
-	r.h -= 2 * pad
+	r.X += pad
+	r.Y += pad
+	r.W -= 2 * pad
+	r.H -= 2 * pad
 	return r
 }

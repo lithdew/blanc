@@ -12,37 +12,37 @@ func TestSplitVertically(t *testing.T) {
 		expected []Rect
 	}{
 		{
-			input:  Rect{x: 2, y: 2, w: 10, h: 10},
+			input:  Rect{X: 2, Y: 2, W: 10, H: 10},
 			params: []Constraint{Length(5), Min(0)},
 			expected: []Rect{
-				{x: 2, y: 2, w: 10, h: 5},
-				{x: 2, y: 7, w: 10, h: 5},
+				{X: 2, Y: 2, W: 10, H: 5},
+				{X: 2, Y: 7, W: 10, H: 5},
 			},
 		},
 		{
-			input:  Rect{x: 2, y: 2, w: 10, h: 10},
+			input:  Rect{X: 2, Y: 2, W: 10, H: 10},
 			params: []Constraint{Ratio(1, 3), Ratio(2, 3)},
 			expected: []Rect{
-				{x: 2, y: 2, w: 10, h: 3},
-				{x: 2, y: 5, w: 10, h: 7},
+				{X: 2, Y: 2, W: 10, H: 3},
+				{X: 2, Y: 5, W: 10, H: 7},
 			},
 		},
 		{
-			input:  Rect{x: 2, y: 2, w: 10, h: 10},
+			input:  Rect{X: 2, Y: 2, W: 10, H: 10},
 			params: []Constraint{Percentage(40), Length(1), Min(0)},
 			expected: []Rect{
-				{x: 2, y: 2, w: 10, h: 4},
-				{x: 2, y: 6, w: 10, h: 1},
-				{x: 2, y: 7, w: 10, h: 5},
+				{X: 2, Y: 2, W: 10, H: 4},
+				{X: 2, Y: 6, W: 10, H: 1},
+				{X: 2, Y: 7, W: 10, H: 5},
 			},
 		},
 		{
-			input:  Rect{x: 2, y: 2, w: 10, h: 10},
+			input:  Rect{X: 2, Y: 2, W: 10, H: 10},
 			params: []Constraint{Percentage(10), Max(5), Min(1)},
 			expected: []Rect{
-				{x: 2, y: 2, w: 10, h: 1},
-				{x: 2, y: 3, w: 10, h: 5},
-				{x: 2, y: 8, w: 10, h: 4},
+				{X: 2, Y: 2, W: 10, H: 1},
+				{X: 2, Y: 3, W: 10, H: 5},
+				{X: 2, Y: 8, W: 10, H: 4},
 			},
 		},
 	}

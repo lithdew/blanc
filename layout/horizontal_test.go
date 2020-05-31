@@ -12,11 +12,11 @@ func TestSplitHorizontally(t *testing.T) {
 		expected []Rect
 	}{
 		{
-			input:  Rect{x: 0, y: 0, w: 9, h: 2},
+			input:  Rect{X: 0, Y: 0, W: 9, H: 2},
 			params: []Constraint{Ratio(1, 3), Ratio(2, 3)},
 			expected: []Rect{
-				{x: 0, y: 0, w: 3, h: 2},
-				{x: 3, y: 0, w: 6, h: 2},
+				{X: 0, Y: 0, W: 3, H: 2},
+				{X: 3, Y: 0, W: 6, H: 2},
 			},
 		},
 	}

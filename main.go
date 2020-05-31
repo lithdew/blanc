@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/gdamore/tcell"
 	"github.com/gdamore/tcell/encoding"
+	"github.com/lithdew/blanc/layout"
 	"log"
 	"time"
 )
@@ -24,6 +25,32 @@ func main() {
 
 	// layout ui
 
+	var container layout.Rect
+	var rects []layout.Rect
+
+	resize := func() {
+		width, height := screen.Size()
+		container = layout.Rect{W: width, H: height}
+
+		rects, err = layout.SplitHorizontally(
+			container,
+			layout.Ratio(1, 3),
+			layout.Ratio(1, 3),
+			layout.Ratio(1, 3),
+		)
+		check(err)
+
+		smaller, err := layout.SplitVertically(
+			rects[1],
+			layout.Ratio(1, 4),
+			layout.Ratio(2, 4),
+			layout.Ratio(1, 4),
+		)
+		check(err)
+
+		rects = append(rects, smaller...)
+	}
+
 	ch := make(chan struct{})
 
 	go func() {
@@ -37,14 +64,18 @@ func main() {
 					return
 				case tcell.KeyCtrlL:
 					screen.Sync()
-					//resize()
+					resize()
 				}
 			case *tcell.EventResize:
 				screen.Sync()
-				//resize()
+				resize()
 			}
 		}
 	}()
+
+	drawrect := func(r layout.Rect) {
+		box(screen, r.X, r.Y, r.X+r.W-1, r.Y+r.H-1, tcell.StyleDefault, ' ')
+	}
 
 loop:
 	for {
@@ -55,6 +86,11 @@ loop:
 		}
 
 		screen.Clear()
+
+		drawrect(container)
+		for _, rect := range rects {
+			drawrect(rect)
+		}
 
 		//puts(screen, tcell.StyleDefault, 0, 0, fmt.Sprintf("[W]: %d", app.Width()))
 		//puts(screen, tcell.StyleDefault, 0, 1, fmt.Sprintf("[H]: %d", app.Height()))
