@@ -21,16 +21,16 @@ var right = NewBox(solver)
 
 func InitLayout() *Layout {
 	a := New(solver)
-	a.Apply(casso.Required, Inside(parent, left, 2)...)
-	a.Apply(casso.Required, Inside(parent, right, 2)...)
-	a.Apply(casso.Medium,
+	a.Required(Inside(parent, left, 2)...)
+	a.Required(Inside(parent, right, 2)...)
+	a.Medium(
 		FillX(parent, left, 0.5),
 		FillX(parent, right, 0.5),
 		FillY(parent, left, 1),
 		FillY(parent, right, 1),
 	)
-	a.Apply(casso.Required, SpaceBetween(left, right, 2))
-	a.Apply(casso.Required, SameWidth(left, right))
+	a.Required(SpaceBetween(left, right, 2))
+	a.Required(SameWidth(left, right))
 	check(a.Finalize())
 	return &a
 }
