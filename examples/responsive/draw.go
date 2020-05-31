@@ -16,29 +16,7 @@ var TcellFrame = [...]rune{
 	tcell.RuneVLine,
 }
 
-var (
-	AsciiFrame       = [...]rune{'-', '-', '-', '-', '-', '-', '|', '|'}
-	UnicodeFrame     = [...]rune{'┏', '┓', '┗', '┛', '━', '━', '┃', '┃'}
-	UnicodeAltFrame  = [...]rune{'▛', '▜', '▙', '▟', '▀', '▄', '▌', '▐'}
-	UnicodeAlt2Frame = [...]rune{'╔', '╗', '╚', '╝', '═', '═', '║', '║'}
-	SpaceFrame       = [...]rune{' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}
-)
-
-func clear(s tcell.Screen, style tcell.Style, x1, y1, x2, y2 int) {
-	if y2 < y1 {
-		y1, y2 = y2, y1
-	}
-	if x2 < x1 {
-		x1, x2 = x2, x1
-	}
-	for row := y1; row <= y2; row++ {
-		for col := x1; col <= x2; col++ {
-			s.SetContent(col, row, ' ', nil, style)
-		}
-	}
-}
-
-func box(s tcell.Screen, style tcell.Style, x1, y1, x2, y2 int, frames [8]rune) {
+func box(s tcell.Screen, x1, y1, x2, y2 int, style tcell.Style, frames [8]rune) {
 	if y2 < y1 {
 		y1, y2 = y2, y1
 	}

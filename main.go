@@ -1,11 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"github.com/gdamore/tcell"
-	"github.com/gdamore/tcell/encoding"
+	"github.com/guptarohit/asciigraph"
 	"github.com/lithdew/blanc/layout"
 	"log"
+	"strings"
 	"time"
 )
 
@@ -15,72 +15,59 @@ func check(err error) {
 	}
 }
 
-type Text struct {
-	rect layout.Rect
-}
-
 func main() {
-	encoding.Register()
-
-	screen, err := tcell.NewScreen()
+	s, err := tcell.NewScreen()
 	check(err)
 
-	check(screen.Init())
-	defer screen.Fini()
-
-	var container layout.Rect
-	var panels []layout.Rect
-
-	resize := func() {
-		width, height := screen.Size()
-		container = layout.Rect{W: width, H: height}
-
-		panels, err = layout.SplitHorizontally(
-			container,
-			layout.Length(25),
-			layout.Min(1),
-			layout.Length(25),
-		)
-		check(err)
-
-		middle, err := layout.SplitVertically(
-			panels[1],
-			layout.Length(4),
-			layout.Ratio(1, 3),
-			layout.Ratio(1, 3),
-		)
-		check(err)
-
-		panels = append(panels, middle...)
-	}
+	check(s.Init())
+	defer s.Fini()
 
 	ch := make(chan struct{})
+
+	var buf []rune
 
 	go func() {
 		defer close(ch)
 		for {
-			ev := screen.PollEvent()
+			ev := s.PollEvent()
 			switch ev := ev.(type) {
 			case *tcell.EventKey:
 				switch ev.Key() {
 				case tcell.KeyCtrlC:
 					return
 				case tcell.KeyCtrlL:
-					screen.Sync()
-					resize()
+					s.Sync()
+				case tcell.KeyDelete, tcell.KeyDEL:
+					if len(buf) > 0 {
+						buf = buf[:len(buf)-1]
+					}
+				case tcell.KeyCtrlW:
+					if len(buf) > 0 {
+						i := strings.LastIndexByte(string(buf[:len(buf)-1]), ' ')
+						if i == -1 {
+							buf = buf[:0]
+						} else {
+							buf = buf[:i+1]
+						}
+					}
+				case tcell.KeyCtrlU:
+					if len(buf) > 0 {
+						buf = buf[:0]
+					}
+				case tcell.KeyRune:
+					if ev.Key() == tcell.KeyRune {
+						buf = append(buf, ev.Rune())
+					}
 				}
 			case *tcell.EventResize:
-				screen.Sync()
-				resize()
+				s.Sync()
 			}
 		}
 	}()
 
-	style := tcell.StyleDefault.Background(tcell.ColorBlue).Foreground(tcell.ColorWhite)
-
-	drawrect := func(r layout.Rect) {
-		box(screen, r.X, r.Y, r.X+r.W-1, r.Y+r.H-1, style, Other)
-	}
+	sh := tcell.StyleDefault.Background(tcell.ColorWhite).Foreground(tcell.ColorBlack)
+	sf := sh
+	sb := sh.Reverse(true)
 
 loop:
 	for {
@@ -90,22 +77,50 @@ loop:
 		case <-time.After(12 * time.Millisecond):
 		}
 
-		screen.Clear()
+		s.Clear()
 
-		drawrect(container)
-		for _, rect := range panels {
-			drawrect(rect)
+		w, h := s.Size()
+
+		scr := layout.Rect{X: 0, Y: 0, W: w, H: h}
+
+		// header
+
+		hdr := layout.Rect{W: w, H: 1}.Align(scr, layout.Top|layout.Left)
+		clear(s, sh, hdr.X, hdr.Y, hdr.X+hdr.W-1, hdr.Y+hdr.H-1)
+
+		txt := "flatend."
+		rect := layout.Text(txt).Align(hdr, layout.Left).ShiftLeft(1)
+
+		puts(s, sh.Bold(true), rect.X, rect.Y, txt)
+
+		// body
+
+		bdy := scr.PadVertical(1)
+		clear(s, sb, bdy.X, bdy.Y, bdy.X+bdy.W-1, bdy.Y+bdy.H-1)
+
+		bdy = bdy.Pad(4)
+
+		data := []float64{3, 4, 9, 6, 2, 4, 5, 8, 5, 10, 2, 7, 2, 5, 6}
+		txt = asciigraph.Plot(data, asciigraph.Width(bdy.W-8), asciigraph.Height(bdy.H))
+		for i, c := range strings.Split(txt, "\n") {
+			puts(s, sb, bdy.X, bdy.Y+i, c)
 		}
 
-		width, _ := screen.Size()
+		// footer
 
-		txt := fmt.Sprintf("[W]: %d", width)
-		rect := layout.Align(panels[2], layout.TextBounds(txt), layout.Center).PadLeft(1)
-		puts(screen, style, rect.X, rect.Y, txt)
+		ftr := layout.Rect{W: w, H: 1}.Align(scr, layout.Bottom|layout.Left)
+		clear(s, sf, ftr.X, ftr.Y, ftr.X+ftr.W-1, ftr.Y+ftr.H-1)
 
-		//puts(screen, style, 2, 1, fmt.Sprintf("[W]: %d", width))
-		//puts(screen, style, 2, 2, fmt.Sprintf("[H]: %d", height))
+		txt = ">>>"
+		rect = layout.Text(txt).Align(ftr, layout.Left).ShiftLeft(1)
 
-		screen.Show()
+		puts(s, sf, rect.X, rect.Y, txt)
+
+		txt = string(buf) + string(tcell.RuneBlock)
+		rect = layout.Text(txt).Align(rect, layout.Right).ShiftLeft(len(txt))
+
+		puts(s, sf.Dim(true), rect.X, rect.Y, txt)
+
+		s.Show()
 	}
 }

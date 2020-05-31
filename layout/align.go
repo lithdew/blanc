@@ -33,15 +33,15 @@ func Align(parent, child Rect, a AlignType) Rect {
 	}
 	switch {
 	case a.Is(Top):
-		child.Y = parent.Y + child.H/2
+		child.Y = parent.Y
 	case a.Is(Bottom):
-		child.Y = parent.Y + (parent.H - 1) - child.H/2
+		child.Y = parent.Y + parent.H - child.H
 	default:
-		child.Y = parent.Y + (parent.H-1)/2
+		child.Y = parent.Y + (parent.H-1)/2 - child.H/2
 	}
 	return child
 }
 
-func TextBounds(text string) Rect {
+func Text(text string) Rect {
 	return Rect{X: 0, Y: 0, W: runewidth.StringWidth(text), H: 1}
 }

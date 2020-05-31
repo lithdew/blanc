@@ -7,6 +7,20 @@ type Rect struct {
 	H int
 }
 
+func (r Rect) Top() int    { return r.Y }
+func (r Rect) Bottom() int { return r.Y + r.H - 1 }
+func (r Rect) Left() int   { return r.X }
+func (r Rect) Right() int  { return r.X + r.W - 1 }
+
+func (r Rect) Align(parent Rect, align AlignType) Rect {
+	return Align(parent, r, align)
+}
+
+func (r Rect) ShiftTop(shift int) Rect    { r.Y += shift; return r }
+func (r Rect) ShiftBottom(shift int) Rect { r.Y -= shift; return r }
+func (r Rect) ShiftLeft(shift int) Rect   { r.X += shift; return r }
+func (r Rect) ShiftRight(shift int) Rect  { r.X -= shift; return r }
+
 func (r Rect) PadLeft(pad int) Rect {
 	if r.W < pad {
 		return r

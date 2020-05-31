@@ -5,6 +5,8 @@ github.com/gdamore/encoding v1.0.0 h1:+7OoQ1Bc6eTm5niUzBa0Ctsh6JbMW6Ra+YNuAtDBdk
 github.com/gdamore/encoding v1.0.0/go.mod h1:alR0ol34c49FCSBLjhosxzcPHQbf2trDkoo5dl+VrEg=
 github.com/gdamore/tcell v1.3.0 h1:r35w0JBADPZCVQijYebl6YMWWtHRqVEGt7kL2eBADRM=
 github.com/gdamore/tcell v1.3.0/go.mod h1:Hjvr+Ofd+gLglo7RYKxxnzCBmev3BzsS67MebKS4zMM=
+github.com/guptarohit/asciigraph v0.4.1 h1:YHmCMN8VH81BIUIgTg2Fs3B52QDxNZw2RQ6j5pGoSxo=
+github.com/guptarohit/asciigraph v0.4.1/go.mod h1:9fYEfE5IGJGxlP1B+w8wHFy7sNZMhPtn59f0RLtpRFM=
 github.com/lithdew/casso v0.0.0-20200530065801-4837bef79db9 h1:w6T4etmT7uCNPUE8nxwSM8nyfV9+s/bFR6JO/Ufpt58=
 github.com/lithdew/casso v0.0.0-20200530065801-4837bef79db9/go.mod h1:iaGbC3JZCbafAF9UkQTn2To3bMVOkTXNFTfS2yRvclM=
 github.com/lithdew/casso v0.0.0-20200530100126-f19113f25051 h1:VI4tTyAFKIA7d9RfzKTbBI+tcB12iLor8aKaW089mok=
