@@ -165,7 +165,7 @@ func (t *Textbox) render(s tcell.Screen, style tcell.Style, r layout.Rect) {
 		}
 	}
 
-	if t.ptr == len(t.text) { // render cursor
+	if t.ptr == len(t.text) && t.pos == -1 { // render cursor
 		s.SetContent(r.X+j, r.Y, tcell.RuneBlock, nil, cs.Reverse(true))
 	}
 }
@@ -175,19 +175,27 @@ func (t *Textbox) selectLeft() {
 		return
 	}
 	if t.pos == -1 {
-		t.pos = t.ptr
+		t.pos = t.ptr - 1
 	}
 	t.ptr--
 }
 
 func (t *Textbox) selectRight() {
+	if t.ptr == len(t.text) {
+		return
+	}
 	if t.ptr == len(t.text)-1 {
+		if t.pos == -1 {
+			t.pos = t.ptr
+			t.ptr = len(t.text)
+		}
 		return
 	}
 	if t.pos == -1 {
 		t.pos = t.ptr
+	} else {
+		t.ptr++
 	}
-	t.ptr++
 }
 
 func (t *Textbox) moveLeft() {
@@ -207,10 +215,9 @@ func (t *Textbox) moveLeft() {
 func (t *Textbox) moveRight() {
 	if t.pos != -1 {
 		if t.ptr < t.pos {
-			t.ptr = t.pos
+			t.ptr = t.pos - 1
 		}
 		t.pos = -1
-		return
 	}
 	if t.ptr == len(t.text) {
 		return
@@ -257,6 +264,9 @@ func (t *Textbox) moveToEnd() {
 }
 
 func (t *Textbox) push(r rune) {
+	if t.pos != -1 {
+		t.pop()
+	}
 	t.text = append(t.text[:t.ptr], append([]rune{r}, t.text[t.ptr:]...)...)
 	t.moveRight()
 }
@@ -273,6 +283,10 @@ func (t *Textbox) pop() {
 	}
 
 	start, end := t.cursorPos()
+	if end == len(t.text) {
+		end--
+	}
+
 	t.text = append(t.text[:start], t.text[end+1:]...)
 	t.ptr = start
 	t.pos = -1
