@@ -116,9 +116,6 @@ func getWordBoundaryType(r rune) rune {
 func (t *Textbox) selectPrevWord() {
 	if t.ptr-1 < 0 {
 		t.ptr = 0
-		if t.pos-1 == 0 {
-			t.pos = -1
-		}
 		return
 	}
 	if t.pos == -1 {
@@ -163,9 +160,6 @@ func (t *Textbox) movePrevWord() {
 func (t *Textbox) selectNextWord() {
 	if t.ptr+1 >= len(t.text) {
 		t.ptr = len(t.text)
-		if t.pos+1 == t.ptr {
-			t.pos = -1
-		}
 		return
 	}
 	if t.pos == -1 {
