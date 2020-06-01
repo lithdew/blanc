@@ -124,13 +124,16 @@ func (t *Textbox) selectPrevWord() {
 	if t.pos == -1 {
 		t.pos = t.ptr - 1
 	}
+
 	cond := isWordBoundary(t.text[t.ptr-1])
 	for t.ptr = t.ptr - 2; t.ptr >= 0; t.ptr-- {
 		if cond != isWordBoundary(t.text[t.ptr]) {
 			break
 		}
 	}
-	t.ptr++
+	if t.ptr < t.pos {
+		t.ptr++
+	}
 }
 
 func (t *Textbox) movePrevWord() {
@@ -165,7 +168,9 @@ func (t *Textbox) selectNextWord() {
 			break
 		}
 	}
-	t.ptr--
+	if t.ptr > t.pos {
+		t.ptr--
+	}
 }
 
 func (t *Textbox) moveNextWord() {
