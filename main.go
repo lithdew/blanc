@@ -175,7 +175,7 @@ func (t *Textbox) selectLeft() {
 		return
 	}
 	if t.pos == -1 {
-		t.pos = t.ptr - 1
+		t.pos = t.ptr
 	}
 	t.ptr--
 }
@@ -191,7 +191,13 @@ func (t *Textbox) selectRight() {
 }
 
 func (t *Textbox) moveLeft() {
-	t.pos = -1
+	if t.pos != -1 {
+		if t.ptr > t.pos {
+			t.ptr = t.pos
+		}
+		t.pos = -1
+		return
+	}
 	if t.ptr == 0 {
 		return
 	}
@@ -199,7 +205,13 @@ func (t *Textbox) moveLeft() {
 }
 
 func (t *Textbox) moveRight() {
-	t.pos = -1
+	if t.pos != -1 {
+		if t.ptr < t.pos {
+			t.ptr = t.pos
+		}
+		t.pos = -1
+		return
+	}
 	if t.ptr == len(t.text) {
 		return
 	}
