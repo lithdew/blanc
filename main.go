@@ -112,7 +112,7 @@ loop:
 		data := []float64{3, 4, 9, 6, 2, 4, 5, 8, 5, 10, 2, 7, 2, 5, 6}
 		txt = asciigraph.Plot(data, asciigraph.Width(graph.W), asciigraph.Height(graph.H))
 		for i, c := range strings.Split(txt, "\n") {
-			puts(s, sb.Reverse(false), graph.X, graph.Y+i, c)
+			puts(s, sb.Reverse(true), graph.X, graph.Y+i, c)
 		}
 
 		// footer

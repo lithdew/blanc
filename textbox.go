@@ -104,9 +104,6 @@ func (t *Textbox) movePrevWord() {
 	t.pos = -1
 
 	i := t.ptr - 2
-	if i == len(t.text) {
-		i--
-	}
 	for ; i >= 0; i-- {
 		if t.text[i] == ' ' {
 			t.ptr = i + 1
