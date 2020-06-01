@@ -4,7 +4,6 @@ import (
 	"github.com/gdamore/tcell"
 	"github.com/lithdew/blanc/layout"
 	"unicode"
-	"unicode/utf8"
 )
 
 type Textbox struct {
@@ -106,11 +105,14 @@ func (t *Textbox) moveRight() {
 	t.ptr++
 }
 
-func isWordBoundary(r rune) rune {
-	if unicode.IsSpace(r) || unicode.IsPunct(r) {
-		return r
+func isWordBoundary(r rune) int {
+	if r == '-' || r == '+' {
+		return 2
 	}
-	return utf8.RuneError
+	if unicode.IsSpace(r) || unicode.IsPunct(r) {
+		return 1
+	}
+	return 0
 }
 
 func (t *Textbox) selectPrevWord() {
