@@ -4,6 +4,7 @@ import (
 	"github.com/gdamore/tcell"
 	"github.com/lithdew/blanc/layout"
 	"unicode"
+	"unicode/utf8"
 )
 
 type Textbox struct {
@@ -105,8 +106,11 @@ func (t *Textbox) moveRight() {
 	t.ptr++
 }
 
-func isWordBoundary(r rune) bool {
-	return unicode.IsSpace(r) || unicode.IsPunct(r)
+func isWordBoundary(r rune) rune {
+	if unicode.IsSpace(r) || unicode.IsPunct(r) {
+		return r
+	}
+	return utf8.RuneError
 }
 
 func (t *Textbox) selectPrevWord() {
@@ -131,12 +135,12 @@ func (t *Textbox) selectPrevWord() {
 
 func (t *Textbox) movePrevWord() {
 	t.pos = -1
-	if t.ptr-1 < 0 {
+	if t.ptr-2 < 0 {
 		t.ptr = 0
 		return
 	}
-	cond := isWordBoundary(t.text[t.ptr-1])
-	for t.ptr = t.ptr - 2; t.ptr >= 0; t.ptr-- {
+	cond := isWordBoundary(t.text[t.ptr-2])
+	for t.ptr = t.ptr - 3; t.ptr >= 0; t.ptr-- {
 		if cond != isWordBoundary(t.text[t.ptr]) {
 			break
 		}
@@ -166,12 +170,12 @@ func (t *Textbox) selectNextWord() {
 
 func (t *Textbox) moveNextWord() {
 	t.pos = -1
-	if t.ptr+1 >= len(t.text) {
+	if t.ptr+2 >= len(t.text) {
 		t.ptr = len(t.text)
 		return
 	}
-	cond := isWordBoundary(t.text[t.ptr+1])
-	for t.ptr = t.ptr + 2; t.ptr < len(t.text); t.ptr++ {
+	cond := isWordBoundary(t.text[t.ptr+2])
+	for t.ptr = t.ptr + 3; t.ptr < len(t.text); t.ptr++ {
 		if cond != isWordBoundary(t.text[t.ptr]) {
 			break
 		}
