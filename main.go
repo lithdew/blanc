@@ -40,6 +40,8 @@ func main() {
 					s.Sync()
 				case tcell.KeyDelete, tcell.KeyDEL:
 					in.pop()
+				case tcell.KeyCtrlA:
+					in.selectAll()
 				case tcell.KeyCtrlW:
 					//m := ev.Modifiers()
 					//if m & tcell.ModShift!= 0 && m & tcell.ModAlt != 0 {
@@ -50,18 +52,30 @@ func main() {
 					in.moveToEnd()
 				case tcell.KeyLeft:
 					m := ev.Modifiers()
-					if m&tcell.ModCtrl != 0 {
+
+					ctrl := m&tcell.ModCtrl != 0
+					shift := m&tcell.ModShift != 0
+
+					if ctrl && shift {
+						in.selectPrevWord()
+					} else if ctrl {
 						in.movePrevWord()
-					} else if m&tcell.ModShift != 0 {
+					} else if shift {
 						in.selectLeft()
 					} else {
 						in.moveLeft()
 					}
 				case tcell.KeyRight:
 					m := ev.Modifiers()
-					if m&tcell.ModCtrl != 0 {
+
+					ctrl := m&tcell.ModCtrl != 0
+					shift := m&tcell.ModShift != 0
+
+					if ctrl && shift {
+						in.selectNextWord()
+					} else if ctrl {
 						in.moveNextWord()
-					} else if m&tcell.ModShift != 0 {
+					} else if shift {
 						in.selectRight()
 					} else {
 						in.moveRight()

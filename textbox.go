@@ -104,8 +104,10 @@ func (t *Textbox) moveRight() {
 	t.ptr++
 }
 
-func (t *Textbox) movePrevWord() {
-	t.pos = -1
+func (t *Textbox) selectPrevWord() {
+	if t.pos == -1 {
+		t.pos = t.ptr - 1
+	}
 
 	for i := t.ptr - 2; i >= 0; i-- {
 		if t.text[i] == ' ' {
@@ -114,6 +116,30 @@ func (t *Textbox) movePrevWord() {
 		}
 	}
 	t.ptr = 0
+}
+
+func (t *Textbox) movePrevWord() {
+	t.pos = -1
+	for i := t.ptr - 2; i >= 0; i-- {
+		if t.text[i] == ' ' {
+			t.ptr = i + 1
+			return
+		}
+	}
+	t.ptr = 0
+}
+
+func (t *Textbox) selectNextWord() {
+	if t.pos == -1 {
+		t.pos = t.ptr
+	}
+	for i := t.ptr + 2; i < len(t.text); i++ {
+		if t.text[i] == ' ' {
+			t.ptr = i - 1
+			return
+		}
+	}
+	t.ptr = len(t.text)
 }
 
 func (t *Textbox) moveNextWord() {
@@ -125,6 +151,11 @@ func (t *Textbox) moveNextWord() {
 		}
 	}
 	t.ptr = len(t.text)
+}
+
+func (t *Textbox) selectAll() {
+	t.ptr = len(t.text)
+	t.pos = 0
 }
 
 func (t *Textbox) moveToEnd() {
