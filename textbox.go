@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/gdamore/tcell"
 	"github.com/lithdew/blanc/layout"
+	"github.com/mattn/go-runewidth"
 	"unicode"
 	"unicode/utf8"
 )
@@ -19,7 +20,7 @@ func newTextbox() *Textbox {
 	return &Textbox{pos: -1}
 }
 
-func (t *Textbox) cursorPos() (start int, end int) {
+func (t *Textbox) selectedArea() (start int, end int) {
 	start = t.ptr // selection start index
 	if t.pos != -1 && start > t.pos {
 		start = t.pos
@@ -39,13 +40,13 @@ func (t *Textbox) render(s tcell.Screen, style tcell.Style, r layout.Rect) {
 	cursor := tcell.StyleDefault.Background(tcell.ColorDarkGray).Foreground(tcell.ColorWhite)
 
 	j := 0
-	for i := 0; i < len(t.label) && r.X+j < r.X+r.W-1; i, j = i+1, j+1 {
+	for i := 0; i < len(t.label) && r.X+j < r.X+r.W-1; i, j = i+1, j+runewidth.RuneWidth(t.label[i]) {
 		s.SetContent(r.X+j, r.Y, t.label[i], nil, style)
 	}
 
-	start, end := t.cursorPos()
+	start, end := t.selectedArea()
 
-	for i := 0; i < len(t.text) && r.X+j < r.X+r.W-1; i, j = i+1, j+1 {
+	for i := 0; i < len(t.text) && r.X+j < r.X+r.W-1; i, j = i+1, j+runewidth.RuneWidth(t.text[i]) {
 		if i >= start && i <= end {
 			s.SetContent(r.X+j, r.Y, t.text[i], nil, cursor)
 		} else {
@@ -244,7 +245,7 @@ func (t *Textbox) pop() {
 		return
 	}
 
-	start, end := t.cursorPos()
+	start, end := t.selectedArea()
 	if end == len(t.text) {
 		end--
 	}
