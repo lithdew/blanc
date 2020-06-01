@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/gdamore/tcell"
 	"github.com/lithdew/blanc/layout"
+	"unicode"
 )
 
 type Textbox struct {
@@ -110,7 +111,7 @@ func (t *Textbox) selectPrevWord() {
 	}
 
 	for i := t.ptr - 2; i >= 0; i-- {
-		if t.text[i] == ' ' {
+		if unicode.IsSpace(t.text[i]) || unicode.IsPunct(t.text[i]) {
 			t.ptr = i + 1
 			return
 		}
@@ -121,7 +122,7 @@ func (t *Textbox) selectPrevWord() {
 func (t *Textbox) movePrevWord() {
 	t.pos = -1
 	for i := t.ptr - 2; i >= 0; i-- {
-		if t.text[i] == ' ' {
+		if unicode.IsSpace(t.text[i]) || unicode.IsPunct(t.text[i]) {
 			t.ptr = i + 1
 			return
 		}
@@ -134,7 +135,7 @@ func (t *Textbox) selectNextWord() {
 		t.pos = t.ptr
 	}
 	for i := t.ptr + 2; i < len(t.text); i++ {
-		if t.text[i] == ' ' {
+		if unicode.IsSpace(t.text[i]) || unicode.IsPunct(t.text[i]) {
 			t.ptr = i - 1
 			return
 		}
@@ -145,7 +146,7 @@ func (t *Textbox) selectNextWord() {
 func (t *Textbox) moveNextWord() {
 	t.pos = -1
 	for i := t.ptr; i < len(t.text); i++ {
-		if t.text[i] == ' ' {
+		if unicode.IsSpace(t.text[i]) || unicode.IsPunct(t.text[i]) {
 			t.ptr = i + 1
 			return
 		}
