@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/gdamore/tcell"
-	"github.com/guptarohit/asciigraph"
+	"github.com/lithdew/asciigraph"
 	"github.com/lithdew/blanc/layout"
 	"log"
 	"strings"
@@ -77,8 +77,6 @@ loop:
 		case <-time.After(12 * time.Millisecond):
 		}
 
-		s.Clear()
-
 		w, h := s.Size()
 
 		scr := layout.Rect{X: 0, Y: 0, W: w, H: h}
@@ -98,12 +96,13 @@ loop:
 		bdy := scr.PadVertical(1)
 		clear(s, sb, bdy.X, bdy.Y, bdy.X+bdy.W-1, bdy.Y+bdy.H-1)
 
-		bdy = bdy.Pad(4)
+		graph := bdy.Pad(4)
+		graph = graph.Align(graph, layout.Center)
 
 		data := []float64{3, 4, 9, 6, 2, 4, 5, 8, 5, 10, 2, 7, 2, 5, 6}
-		txt = asciigraph.Plot(data, asciigraph.Width(bdy.W-8), asciigraph.Height(bdy.H))
+		txt = asciigraph.Plot(data, asciigraph.Width(graph.W), asciigraph.Height(graph.H))
 		for i, c := range strings.Split(txt, "\n") {
-			puts(s, sb, bdy.X, bdy.Y+i, c)
+			puts(s, sb, graph.X, graph.Y+i, c)
 		}
 
 		// footer
