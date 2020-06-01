@@ -4,6 +4,7 @@ import (
 	"github.com/gdamore/tcell"
 	"github.com/lithdew/blanc/layout"
 	"unicode"
+	"unicode/utf8"
 )
 
 type Textbox struct {
@@ -105,14 +106,11 @@ func (t *Textbox) moveRight() {
 	t.ptr++
 }
 
-func isWordBoundary(r rune) int {
-	if r == '-' || r == '+' {
-		return 2
-	}
+func getWordBoundaryType(r rune) rune {
 	if unicode.IsSpace(r) || unicode.IsPunct(r) {
-		return 1
+		return r
 	}
-	return 0
+	return utf8.RuneError
 }
 
 func (t *Textbox) selectPrevWord() {
@@ -126,12 +124,16 @@ func (t *Textbox) selectPrevWord() {
 	if t.pos == -1 {
 		t.pos = t.ptr - 1
 	}
-
-	cond := isWordBoundary(t.text[t.ptr-1])
-	for t.ptr = t.ptr - 2; t.ptr >= 0; t.ptr-- {
-		if cond != isWordBoundary(t.text[t.ptr]) {
+	t.ptr--
+	for t.ptr > 0 {
+		if !unicode.IsSpace(t.text[t.ptr]) {
 			break
 		}
+		t.ptr--
+	}
+	cond := getWordBoundaryType(t.text[t.ptr])
+	for t.ptr >= 0 && cond == getWordBoundaryType(t.text[t.ptr]) {
+		t.ptr--
 	}
 	if t.ptr < t.pos {
 		t.ptr++
@@ -144,11 +146,16 @@ func (t *Textbox) movePrevWord() {
 		t.ptr = 0
 		return
 	}
-	cond := isWordBoundary(t.text[t.ptr-2])
-	for t.ptr = t.ptr - 3; t.ptr >= 0; t.ptr-- {
-		if cond != isWordBoundary(t.text[t.ptr]) {
+	t.ptr--
+	for t.ptr > 0 {
+		if !unicode.IsSpace(t.text[t.ptr]) {
 			break
 		}
+		t.ptr--
+	}
+	cond := getWordBoundaryType(t.text[t.ptr])
+	for t.ptr >= 0 && cond == getWordBoundaryType(t.text[t.ptr]) {
+		t.ptr--
 	}
 	t.ptr++
 }
@@ -164,12 +171,22 @@ func (t *Textbox) selectNextWord() {
 	if t.pos == -1 {
 		t.pos = t.ptr
 	}
-	cond := isWordBoundary(t.text[t.ptr+1])
-	for t.ptr = t.ptr + 2; t.ptr < len(t.text); t.ptr++ {
-		if cond != isWordBoundary(t.text[t.ptr]) {
+
+	t.ptr++
+
+	for t.ptr < len(t.text) {
+		if !unicode.IsSpace(t.text[t.ptr]) {
 			break
 		}
+		t.ptr++
 	}
+
+	cond := getWordBoundaryType(t.text[t.ptr])
+
+	for t.ptr < len(t.text) && cond == getWordBoundaryType(t.text[t.ptr]) {
+		t.ptr++
+	}
+
 	if t.ptr > t.pos {
 		t.ptr--
 	}
@@ -177,15 +194,24 @@ func (t *Textbox) selectNextWord() {
 
 func (t *Textbox) moveNextWord() {
 	t.pos = -1
-	if t.ptr+2 >= len(t.text) {
+	if t.ptr+1 >= len(t.text) {
 		t.ptr = len(t.text)
 		return
 	}
-	cond := isWordBoundary(t.text[t.ptr+2])
-	for t.ptr = t.ptr + 3; t.ptr < len(t.text); t.ptr++ {
-		if cond != isWordBoundary(t.text[t.ptr]) {
+
+	t.ptr++
+
+	for t.ptr < len(t.text) {
+		if !unicode.IsSpace(t.text[t.ptr]) {
 			break
 		}
+		t.ptr++
+	}
+
+	cond := getWordBoundaryType(t.text[t.ptr])
+
+	for t.ptr < len(t.text) && cond == getWordBoundaryType(t.text[t.ptr]) {
+		t.ptr++
 	}
 }
 
