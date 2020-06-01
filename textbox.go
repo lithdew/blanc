@@ -30,7 +30,11 @@ func (t *Textbox) cursorPos() (start int, end int) {
 }
 
 func (t *Textbox) render(s tcell.Screen, style tcell.Style, r layout.Rect) {
-	cs := tcell.StyleDefault.Background(tcell.ColorDarkGray).Foreground(tcell.ColorWhite) // cursor style
+	if r.H < 1 {
+		return
+	}
+
+	cursor := tcell.StyleDefault.Background(tcell.ColorDarkGray).Foreground(tcell.ColorWhite)
 
 	j := 0
 	for i := 0; i < len(t.label) && r.X+j < r.X+r.W-1; i, j = i+1, j+1 {
@@ -41,14 +45,14 @@ func (t *Textbox) render(s tcell.Screen, style tcell.Style, r layout.Rect) {
 
 	for i := 0; i < len(t.text) && r.X+j < r.X+r.W-1; i, j = i+1, j+1 {
 		if i >= start && i <= end {
-			s.SetContent(r.X+j, r.Y, t.text[i], nil, cs)
+			s.SetContent(r.X+j, r.Y, t.text[i], nil, cursor)
 		} else {
 			s.SetContent(r.X+j, r.Y, t.text[i], nil, style)
 		}
 	}
 
 	if t.ptr == len(t.text) && t.pos == -1 { // render cursor
-		s.SetContent(r.X+j, r.Y, tcell.RuneBlock, nil, cs.Reverse(true))
+		s.SetContent(r.X+j, r.Y, tcell.RuneBlock, nil, cursor.Reverse(true))
 	}
 }
 
@@ -103,8 +107,7 @@ func (t *Textbox) moveRight() {
 func (t *Textbox) movePrevWord() {
 	t.pos = -1
 
-	i := t.ptr - 2
-	for ; i >= 0; i-- {
+	for i := t.ptr - 2; i >= 0; i-- {
 		if t.text[i] == ' ' {
 			t.ptr = i + 1
 			return
