@@ -105,53 +105,71 @@ func (t *Textbox) moveRight() {
 	t.ptr++
 }
 
+func isWordBoundary(r rune) bool {
+	return unicode.IsSpace(r) || unicode.IsPunct(r)
+}
+
 func (t *Textbox) selectPrevWord() {
+	if t.ptr-1 < 0 {
+		t.ptr = 0
+		return
+	}
 	if t.pos == -1 {
 		t.pos = t.ptr - 1
 	}
-
-	for i := t.ptr - 2; i >= 0; i-- {
-		if unicode.IsSpace(t.text[i]) || unicode.IsPunct(t.text[i]) {
-			t.ptr = i + 1
-			return
+	cond := isWordBoundary(t.text[t.ptr-1])
+	for t.ptr = t.ptr - 2; t.ptr >= 0; t.ptr-- {
+		if cond != isWordBoundary(t.text[t.ptr]) {
+			break
 		}
 	}
-	t.ptr = 0
+	t.ptr++
 }
 
 func (t *Textbox) movePrevWord() {
 	t.pos = -1
-	for i := t.ptr - 2; i >= 0; i-- {
-		if unicode.IsSpace(t.text[i]) || unicode.IsPunct(t.text[i]) {
-			t.ptr = i + 1
-			return
+	if t.ptr-1 < 0 {
+		t.ptr = 0
+		return
+	}
+	cond := isWordBoundary(t.text[t.ptr-1])
+	for t.ptr = t.ptr - 2; t.ptr >= 0; t.ptr-- {
+		if cond != isWordBoundary(t.text[t.ptr]) {
+			break
 		}
 	}
-	t.ptr = 0
+	t.ptr++
 }
 
 func (t *Textbox) selectNextWord() {
+	if t.ptr+1 >= len(t.text) {
+		t.ptr = len(t.text)
+		return
+	}
 	if t.pos == -1 {
 		t.pos = t.ptr
 	}
-	for i := t.ptr + 2; i < len(t.text); i++ {
-		if unicode.IsSpace(t.text[i]) || unicode.IsPunct(t.text[i]) {
-			t.ptr = i - 1
-			return
+	cond := isWordBoundary(t.text[t.ptr+1])
+	for t.ptr = t.ptr + 2; t.ptr < len(t.text); t.ptr++ {
+		if cond != isWordBoundary(t.text[t.ptr]) {
+			break
 		}
 	}
-	t.ptr = len(t.text)
+	t.ptr--
 }
 
 func (t *Textbox) moveNextWord() {
 	t.pos = -1
-	for i := t.ptr; i < len(t.text); i++ {
-		if unicode.IsSpace(t.text[i]) || unicode.IsPunct(t.text[i]) {
-			t.ptr = i + 1
-			return
+	if t.ptr+1 >= len(t.text) {
+		t.ptr = len(t.text)
+		return
+	}
+	cond := isWordBoundary(t.text[t.ptr+1])
+	for t.ptr = t.ptr + 2; t.ptr < len(t.text); t.ptr++ {
+		if cond != isWordBoundary(t.text[t.ptr]) {
+			break
 		}
 	}
-	t.ptr = len(t.text)
 }
 
 func (t *Textbox) selectAll() {
