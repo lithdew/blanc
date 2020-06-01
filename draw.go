@@ -81,6 +81,7 @@ func puts(s tcell.Screen, style tcell.Style, x, y int, str string) {
 			}
 			deferred = append(deferred, r)
 			zwj = true
+
 			continue
 		}
 		if zwj {

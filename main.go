@@ -66,7 +66,6 @@ func main() {
 	}()
 
 	sh := tcell.StyleDefault.Background(tcell.ColorWhite).Foreground(tcell.ColorBlack)
-	sf := sh
 	sb := sh.Reverse(true)
 
 loop:
@@ -97,29 +96,35 @@ loop:
 		clear(s, sb, bdy.X, bdy.Y, bdy.X+bdy.W-1, bdy.Y+bdy.H-1)
 
 		graph := bdy.Pad(4)
-		graph = graph.Align(graph, layout.Center)
 
 		data := []float64{3, 4, 9, 6, 2, 4, 5, 8, 5, 10, 2, 7, 2, 5, 6}
 		txt = asciigraph.Plot(data, asciigraph.Width(graph.W), asciigraph.Height(graph.H))
 		for i, c := range strings.Split(txt, "\n") {
-			puts(s, sb, graph.X, graph.Y+i, c)
+			puts(s, sb.Reverse(false), graph.X, graph.Y+i, c)
 		}
 
 		// footer
 
-		ftr := layout.Rect{W: w, H: 1}.Align(scr, layout.Bottom|layout.Left)
-		clear(s, sf, ftr.X, ftr.Y, ftr.X+ftr.W-1, ftr.Y+ftr.H-1)
-
-		txt = ">>>"
-		rect = layout.Text(txt).Align(ftr, layout.Left).ShiftLeft(1)
-
-		puts(s, sf, rect.X, rect.Y, txt)
-
-		txt = string(buf) + string(tcell.RuneBlock)
-		rect = layout.Text(txt).Align(rect, layout.Right).ShiftLeft(len(txt))
-
-		puts(s, sf.Dim(true), rect.X, rect.Y, txt)
+		renderFooter(s, scr, &buf)
 
 		s.Show()
 	}
+}
+
+func renderFooter(s tcell.Screen, scr layout.Rect, buf *[]rune) {
+	style := tcell.StyleDefault.Reverse(true)
+
+	ftr := layout.Rect{W: scr.W, H: 1}.Align(scr, layout.Bottom|layout.Left)
+	clear(s, style, ftr.X, ftr.Y, ftr.X+ftr.W-1, ftr.Y+ftr.H-1)
+
+	label := ">>>"
+	labelRect := layout.Text(label).Align(ftr, layout.Left).ShiftLeft(1)
+	puts(s, style, labelRect.X, labelRect.Y, label)
+
+	text := string(*buf) + string(tcell.RuneBlock)
+	textRect := layout.Text(text).Align(labelRect, layout.Right).ShiftLeft(len(text))
+	puts(s, style, textRect.X, textRect.Y, text)
+
+	menuRect := layout.Rect{X: textRect.Right() + 1, Y: textRect.Y - 10, W: 30, H: 10}
+	clear(s, tcell.StyleDefault.Background(tcell.ColorBlue), menuRect.Left(), menuRect.Top(), menuRect.Right(), menuRect.Bottom())
 }

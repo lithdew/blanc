@@ -7,6 +7,10 @@ type Rect struct {
 	H int
 }
 
+func (r Rect) Intersects(other Rect) bool {
+	return r.Left() < other.Right() && r.Right() > other.Right() && r.Top() > r.Bottom() && r.Bottom() < r.Top()
+}
+
 func (r Rect) Top() int    { return r.Y }
 func (r Rect) Bottom() int { return r.Y + r.H - 1 }
 func (r Rect) Left() int   { return r.X }
