@@ -31,56 +31,12 @@ func main() {
 			ev := s.PollEvent()
 			switch ev := ev.(type) {
 			case *tcell.EventKey:
-				switch ev.Key() {
-				case tcell.KeyCtrlC:
-					return
-				case tcell.KeyCtrlL:
-					s.Sync()
-				case tcell.KeyDelete, tcell.KeyDEL:
-					in.pop()
-				case tcell.KeyCtrlA:
-					in.selectAll()
-				case tcell.KeyCtrlW:
-					//m := ev.Modifiers()
-					//if m & tcell.ModShift!= 0 && m & tcell.ModAlt != 0 {
-					//
-					//}
-					in.moveNextWord()
-				case tcell.KeyCtrlU:
-					in.moveToEnd()
-				case tcell.KeyLeft:
-					m := ev.Modifiers()
-
-					ctrl := m&tcell.ModCtrl != 0
-					shift := m&tcell.ModShift != 0
-
-					if ctrl && shift {
-						in.selectPrevWord()
-					} else if ctrl {
-						in.movePrevWord()
-					} else if shift {
-						in.selectLeft()
-					} else {
-						in.moveLeft()
-					}
-				case tcell.KeyRight:
-					m := ev.Modifiers()
-
-					ctrl := m&tcell.ModCtrl != 0
-					shift := m&tcell.ModShift != 0
-
-					if ctrl && shift {
-						in.selectNextWord()
-					} else if ctrl {
-						in.moveNextWord()
-					} else if shift {
-						in.selectRight()
-					} else {
-						in.moveRight()
-					}
-				case tcell.KeyRune:
-					if ev.Key() == tcell.KeyRune {
-						in.push(ev.Rune())
+				if !in.handleKeyPress(ev) {
+					switch ev.Key() {
+					case tcell.KeyCtrlC:
+						return
+					case tcell.KeyCtrlL:
+						s.Sync()
 					}
 				}
 			case *tcell.EventResize:

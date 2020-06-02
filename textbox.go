@@ -31,6 +31,59 @@ func (t *Textbox) cursorX(r layout.Rect) int {
 	return x
 }
 
+func (t *Textbox) handleKeyPress(ev *tcell.EventKey) bool {
+	m := ev.Modifiers()
+
+	ctrl := m&tcell.ModCtrl != 0
+	shift := m&tcell.ModShift != 0
+
+	switch ev.Key() {
+	case tcell.KeyDelete, tcell.KeyDEL:
+		t.pop()
+		return true
+	case tcell.KeyCtrlA:
+		t.selectAll()
+		return true
+	case tcell.KeyCtrlW:
+		t.moveNextWord()
+		return true
+	case tcell.KeyCtrlU:
+		t.moveToEnd()
+		return true
+	case tcell.KeyLeft:
+		switch {
+		case ctrl && shift:
+			t.selectPrevWord()
+		case ctrl:
+			t.movePrevWord()
+		case shift:
+			t.selectLeft()
+		default:
+			t.moveLeft()
+		}
+		return true
+	case tcell.KeyRight:
+		switch {
+		case ctrl && shift:
+			t.selectNextWord()
+		case ctrl:
+			t.moveNextWord()
+		case shift:
+			t.selectRight()
+		default:
+			t.moveRight()
+		}
+		return true
+	case tcell.KeyRune:
+		if ev.Key() == tcell.KeyRune {
+			t.push(ev.Rune())
+		}
+		return true
+	default:
+		return false
+	}
+}
+
 func (t *Textbox) getText() string {
 	return string(t.buf)
 }
