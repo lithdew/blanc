@@ -41,7 +41,7 @@ func (t Text) Draw(s tcell.Screen, r layout.Rect) {
 
 	style := tcell.StyleDefault
 	if t.style != nil {
-		style = t.style(0)
+		style = t.style(-1)
 	}
 
 	clear(s, style, r.Left(), r.Top(), r.Right(), r.Bottom())
