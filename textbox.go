@@ -75,6 +75,10 @@ func (t *Textbox) selectLeft() {
 }
 
 func (t *Textbox) selectRight() {
+	if t.ptr == len(t.text) {
+		return
+	}
+
 	if t.pos != -1 && t.ptr == t.pos && t.dir == -1 {
 		t.shiftRight()
 		t.pos = -1
@@ -193,7 +197,39 @@ func (t *Textbox) shiftPrevWord() {
 	for t.ptr > 0 {
 		t.shiftLeft()
 		if class != t.getRuneClass(t.text[t.ptr]) {
-			t.shiftRight()
+			if t.dir == 1 {
+				t.shiftRight()
+			}
+			break
+		}
+	}
+}
+
+func (t *Textbox) selectPrevWord() {
+	if t.dir == -1 || t.ptr == len(t.text) {
+		t.selectLeft()
+	}
+
+	for t.ptr > 0 {
+		if !unicode.IsSpace(t.text[t.ptr]) {
+			break
+		}
+		t.selectLeft()
+	}
+
+	if t.ptr == 0 {
+		return
+	}
+
+	class := t.getRuneClass(t.text[t.ptr])
+
+	for t.ptr > 0 {
+		t.selectLeft()
+
+		if class != t.getRuneClass(t.text[t.ptr]) {
+			if t.dir == -1 {
+				t.selectRight()
+			}
 			break
 		}
 	}
@@ -204,70 +240,34 @@ func (t *Textbox) movePrevWord() {
 	t.shiftPrevWord()
 }
 
-func dst(a, b int) int {
-	if a < b {
-		a, b = b, a
-	}
-	return a - b
-}
-
 func (t *Textbox) selectNextWord() {
 	if t.ptr == len(t.text) {
 		return
 	}
-	if t.pos == -1 {
-		t.pos = t.ptr
-		t.dir = 1
-	}
-	t.shiftRight()
-	t.shiftNextWord()
 
-	if t.ptr >= t.pos {
-		t.shiftLeft()
-	}
+	t.selectRight()
 
-	if t.pos != -1 && t.dir == -1 {
-		if dst(t.ptr, t.pos) <= 1 {
-			t.ptr = t.pos + 1
-			t.pos = -1
+	for t.ptr < len(t.text) {
+		if !unicode.IsSpace(t.text[t.ptr]) {
+			break
 		}
-		if t.ptr >= t.pos {
-			t.dir = 1
-			if t.pos != -1 {
-				t.pos++
+		t.selectRight()
+	}
+
+	if t.ptr == len(t.text) {
+		return
+	}
+
+	class := t.getRuneClass(t.text[t.ptr])
+
+	for t.ptr < len(t.text)-1 {
+		t.selectRight()
+
+		if class != t.getRuneClass(t.text[t.ptr]) {
+			if t.dir == 1 {
+				t.selectLeft()
 			}
-		}
-	}
-}
-
-func (t *Textbox) selectPrevWord() {
-	if t.pos == -1 {
-		t.pos = t.ptr - 1
-		t.dir = -1
-	}
-
-	if t.ptr > t.pos && t.dir == 1 {
-		t.shiftRight()
-	}
-	t.shiftPrevWord()
-
-	if t.ptr > t.pos && t.dir == 1 {
-		t.shiftLeft()
-	}
-
-	if t.pos != -1 && t.dir == 1 {
-		if dst(t.ptr, t.pos) <= 1 {
-			t.ptr = t.pos
-
-			if t.ptr == t.pos {
-				t.pos = -1
-			}
-		}
-		if t.ptr < t.pos {
-			t.dir = -1
-			if t.pos != len(t.text) {
-				t.pos--
-			}
+			break
 		}
 	}
 }
@@ -289,6 +289,10 @@ func (t *Textbox) moveToEnd() {
 }
 
 func (t *Textbox) push(r rune) {
+	if t.pos != -1 {
+		t.pop()
+	}
+
 	t.text = append(t.text[:t.ptr], append([]rune{r}, t.text[t.ptr:]...)...)
 	t.ptr++
 }
