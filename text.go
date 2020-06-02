@@ -19,10 +19,11 @@ type Text struct {
 
 func NewText(text string) Text { return Text{text: text} }
 
-func (t *Text) SetStyleFunc(style StyleFunc) { t.style = style }
-func (t *Text) SetWrap(wrap bool)            { t.wrap = wrap }
-func (t *Text) SetText(text string)          { t.text = text; t.width = runewidth.StringWidth(text) }
 func (t *Text) SetStyle(style tcell.Style)   { t.style = func(int) tcell.Style { return style } }
+func (t *Text) SetStyleFunc(style StyleFunc) { t.style = style }
+
+func (t *Text) SetText(text string) { t.text = text; t.width = runewidth.StringWidth(text) }
+func (t *Text) SetWrap(wrap bool)   { t.wrap = wrap }
 
 func (t Text) Width() int   { return t.width }
 func (t Text) Text() string { return t.text }
@@ -37,6 +38,13 @@ func (t Text) Draw(s tcell.Screen, r layout.Rect) {
 	} else {
 		text = []rune(t.text)
 	}
+
+	style := tcell.StyleDefault
+	if t.style != nil {
+		style = t.style(0)
+	}
+
+	clear(s, style, r.Left(), r.Top(), r.Right(), r.Bottom())
 
 	for i := 0; i < len(text) && x <= r.X+r.W && y <= r.Y+r.H; i++ {
 		if text[i] == '\n' {

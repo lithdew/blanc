@@ -97,7 +97,7 @@ loop:
 		select {
 		case <-ch:
 			break loop
-		case <-time.After(12 * time.Millisecond):
+		case <-time.After(40 * time.Millisecond):
 		}
 
 		w, h := s.Size()
@@ -138,5 +138,24 @@ func renderFooter(s tcell.Screen, scr layout.Rect, in *Textbox) {
 	if len(in.getText()) > 0 {
 		menuRect := layout.Rect{X: in.cursorX(inRect) + 1, Y: ftr.Y - 10, W: 30, H: 10}
 		clear(s, tcell.StyleDefault.Background(tcell.ColorBlue), menuRect.Left(), menuRect.Top(), menuRect.Right(), menuRect.Bottom())
+
+		items := []string{"hello", "world", "testing"}
+
+		first := tcell.StyleDefault.Background(tcell.ColorBlue).Foreground(tcell.ColorBlack)
+		second := tcell.StyleDefault.Background(tcell.ColorLightBlue).Foreground(tcell.ColorBlack)
+
+		for i := range items {
+			itemRect := layout.Rect{X: menuRect.X, Y: menuRect.Y + i, W: menuRect.W, H: 1}
+
+			view := NewText(" " + items[i])
+
+			if i%2 == 1 {
+				view.SetStyle(first)
+			} else {
+				view.SetStyle(second)
+			}
+
+			view.Draw(s, itemRect)
+		}
 	}
 }
