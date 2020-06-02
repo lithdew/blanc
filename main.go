@@ -109,10 +109,12 @@ loop:
 		hdr := layout.Rect{W: w, H: 1}.Align(scr, layout.Top|layout.Left)
 		clear(s, sh, hdr.X, hdr.Y, hdr.X+hdr.W-1, hdr.Y+hdr.H-1)
 
-		txt := "flatend."
-		rect := layout.Text(txt).Align(hdr, layout.Left).ShiftLeft(1)
+		titleText := "flatend."
+		titleRect := layout.Text(titleText).Align(hdr, layout.Left).ShiftLeft(1)
 
-		puts(s, sh.Bold(true), rect.X, rect.Y, txt)
+		title := NewText(titleText)
+		title.SetStyle(sh.Bold(true))
+		title.Draw(s, titleRect)
 
 		// body
 

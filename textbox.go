@@ -56,16 +56,18 @@ func (t *Textbox) render(s tcell.Screen, style tcell.Style, r layout.Rect) {
 	t.label.Draw(s, r)
 
 	r = r.PadLeft(t.label.Width())
-
-	selected := tcell.StyleDefault.Background(tcell.ColorDarkGray).Foreground(tcell.ColorWhite)
 	start, end := t.selectedArea()
 
-	t.text.SetStyleFunc(func(i int) tcell.Style {
+	selected := tcell.StyleDefault.Background(tcell.ColorDarkGray).Foreground(tcell.ColorWhite)
+
+	styleFunc := func(i int) tcell.Style {
 		if t.pos != -1 && i >= start && i <= end {
 			return selected
 		}
 		return style
-	})
+	}
+
+	t.text.SetStyleFunc(styleFunc)
 
 	t.text.SetText(string(t.buf))
 	t.text.Draw(s, r)

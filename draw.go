@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/gdamore/tcell"
-	"github.com/mattn/go-runewidth"
 )
 
 var TcellFrame = [...]rune{
@@ -63,57 +62,5 @@ func box(s tcell.Screen, style tcell.Style, x1, y1, x2, y2 int, frames [8]rune) 
 		for col := x1 + 1; col < x2; col++ {
 			s.SetContent(col, row, ' ', nil, style)
 		}
-	}
-}
-
-func puts(s tcell.Screen, style tcell.Style, x, y int, str string) {
-	var deferred []rune
-
-	i := 0
-	zwj := false
-	width := 0
-
-	for _, r := range str {
-		if r == '\u200d' {
-			if len(deferred) == 0 {
-				deferred = append(deferred, ' ')
-				width = 1
-			}
-			deferred = append(deferred, r)
-			zwj = true
-
-			continue
-		}
-		if zwj {
-			deferred = append(deferred, r)
-			zwj = false
-			continue
-		}
-		switch runewidth.RuneWidth(r) {
-		case 0:
-			if len(deferred) == 0 {
-				deferred = append(deferred, ' ')
-				width = 1
-			}
-		case 1:
-			if len(deferred) != 0 {
-				s.SetContent(x+i, y, deferred[0], deferred[1:], style)
-				i += width
-			}
-			deferred = nil
-			width = 1
-		case 2:
-			if len(deferred) != 0 {
-				s.SetContent(x+i, y, deferred[0], deferred[1:], style)
-				i += width
-			}
-			deferred = nil
-			width = 2
-		}
-		deferred = append(deferred, r)
-	}
-	if len(deferred) != 0 {
-		s.SetContent(x+i, y, deferred[0], deferred[1:], style)
-		i += width
 	}
 }
