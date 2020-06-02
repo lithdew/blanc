@@ -55,7 +55,9 @@ func (t *Textbox) render(s tcell.Screen, style tcell.Style, r layout.Rect) {
 	}
 
 	if t.ptr == len(t.text) && t.pos == -1 { // render cursor
-		s.SetContent(r.X+j, r.Y, tcell.RuneBlock, nil, cursor.Reverse(true))
+		s.ShowCursor(r.X+j, r.Y)
+	} else {
+		s.HideCursor()
 	}
 }
 
