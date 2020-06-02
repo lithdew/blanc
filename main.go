@@ -2,10 +2,8 @@ package main
 
 import (
 	"github.com/gdamore/tcell"
-	"github.com/lithdew/asciigraph"
 	"github.com/lithdew/blanc/layout"
 	"log"
-	"strings"
 	"time"
 )
 
@@ -123,11 +121,16 @@ loop:
 
 		graph := bdy.Pad(4)
 
-		data := []float64{3, 4, 9, 6, 2, 4, 5, 8, 5, 10, 2, 7, 2, 5, 6}
-		txt = asciigraph.Plot(data, asciigraph.Width(graph.W), asciigraph.Height(graph.H))
-		for i, c := range strings.Split(txt, "\n") {
-			puts(s, sb.Reverse(true), graph.X, graph.Y+i, c)
-		}
+		//data := []float64{3, 4, 9, 6, 2, 4, 5, 8, 5, 10, 2, 7, 2, 5, 6}
+		//txt = asciigraph.Plot(data, asciigraph.Width(graph.W), asciigraph.Height(graph.H))
+		//for i, c := range strings.Split(txt, "\n") {
+		//	puts(s, sb.Reverse(true), graph.X, graph.Y+i, c)
+		//}
+
+		sentence := "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent sollicitudin augue nisi, vel euismod mi eleifend et. Nulla maximus magna id ex malesuada vestibulum semper nec dui. Duis sagittis scelerisque augue et eleifend. Nam quis est urna. Suspendisse non sapien pellentesque, porta dui quis, hendrerit ex. Vestibulum tempor efficitur nisi quis accumsan. Vestibulum nisl magna, dignissim at eros ac, maximus scelerisque mauris. Vivamus consequat metus justo, eget venenatis urna finibus quis. Curabitur congue feugiat ipsum, sed lacinia turpis aliquam eu. Mauris rhoncus lectus id erat luctus ultricies. Fusce sodales urna eu purus ornare consectetur. In vitae leo dignissim, tincidunt velit ut, viverra velit. Quisque vel nibh nec mi bibendum tempor sit amet vitae nisl. In maximus odio eget tristique imperdiet. Fusce id nunc ut arcu ultrices convallis. Pellentesque."
+		tst := NewText(sentence)
+		tst.SetWrap(true)
+		tst.Draw(s, graph)
 
 		// footer
 
@@ -146,6 +149,8 @@ func renderFooter(s tcell.Screen, scr layout.Rect, in *Textbox) {
 	inRect := ftr.PadLeft(1)
 	in.render(s, style, inRect)
 
-	menuRect := layout.Rect{X: in.cursorX(inRect) + 1, Y: ftr.Y - 10, W: 30, H: 10}
-	clear(s, tcell.StyleDefault.Background(tcell.ColorBlue), menuRect.Left(), menuRect.Top(), menuRect.Right(), menuRect.Bottom())
+	if len(in.getText()) > 0 {
+		menuRect := layout.Rect{X: in.cursorX(inRect) + 1, Y: ftr.Y - 10, W: 30, H: 10}
+		clear(s, tcell.StyleDefault.Background(tcell.ColorBlue), menuRect.Left(), menuRect.Top(), menuRect.Right(), menuRect.Bottom())
+	}
 }

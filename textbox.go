@@ -8,11 +8,11 @@ import (
 )
 
 type Textbox struct {
-	label      []rune
-	labelWidth int
+	label Text
+	text  Text
 
-	text      []rune
-	textWidth int
+	buf  []rune
+	size int
 
 	ptr int // cursor start index
 	pos int // cursor end index
@@ -24,11 +24,15 @@ func newTextbox() *Textbox {
 }
 
 func (t *Textbox) cursorX(r layout.Rect) int {
-	x := r.X + t.labelWidth
+	x := r.X + t.label.width
 	for i := 0; i < t.ptr; i++ {
-		x += runewidth.RuneWidth(t.text[i])
+		x += runewidth.RuneWidth(t.buf[i])
 	}
 	return x
+}
+
+func (t *Textbox) getText() string {
+	return string(t.buf)
 }
 
 func (t *Textbox) selectedArea() (start int, end int) {
@@ -48,26 +52,26 @@ func (t *Textbox) render(s tcell.Screen, style tcell.Style, r layout.Rect) {
 		return
 	}
 
-	cursor := tcell.StyleDefault.Background(tcell.ColorDarkGray).Foreground(tcell.ColorWhite)
+	t.label.SetStyle(style)
+	t.label.Draw(s, r)
 
-	j := 0
-	for i := 0; i < len(t.label) && r.X+j < r.X+r.W-1; i, j = i+1, j+runewidth.RuneWidth(t.label[i]) {
-		s.SetContent(r.X+j, r.Y, t.label[i], nil, style)
-	}
-	k := j
+	r = r.PadLeft(t.label.Width())
 
+	selected := tcell.StyleDefault.Background(tcell.ColorDarkGray).Foreground(tcell.ColorWhite)
 	start, end := t.selectedArea()
 
-	for i := 0; i < len(t.text) && r.X+j < r.X+r.W-1; i, j = i+1, j+runewidth.RuneWidth(t.text[i]) {
+	t.text.SetStyleFunc(func(i int) tcell.Style {
 		if t.pos != -1 && i >= start && i <= end {
-			s.SetContent(r.X+j, r.Y, t.text[i], nil, cursor)
-		} else {
-			s.SetContent(r.X+j, r.Y, t.text[i], nil, style)
+			return selected
 		}
-	}
+		return style
+	})
+
+	t.text.SetText(string(t.buf))
+	t.text.Draw(s, r)
 
 	if t.pos == -1 {
-		s.ShowCursor(r.X+k+t.ptr, r.Y)
+		s.ShowCursor(r.X+t.ptr, r.Y)
 	} else {
 		s.HideCursor()
 	}
@@ -86,7 +90,7 @@ func (t *Textbox) selectLeft() {
 }
 
 func (t *Textbox) selectRight() {
-	if t.ptr == len(t.text) {
+	if t.ptr == len(t.buf) {
 		return
 	}
 
@@ -139,8 +143,8 @@ func (t *Textbox) moveLeft() {
 
 func (t *Textbox) shiftRight() {
 	t.ptr++
-	if t.ptr > len(t.text) {
-		t.ptr = len(t.text)
+	if t.ptr > len(t.buf) {
+		t.ptr = len(t.buf)
 	}
 }
 
@@ -161,22 +165,22 @@ func (t *Textbox) getRuneClass(r rune) int {
 }
 
 func (t *Textbox) shiftNextWord() {
-	for t.ptr < len(t.text) {
-		if !unicode.IsSpace(t.text[t.ptr]) {
+	for t.ptr < len(t.buf) {
+		if !unicode.IsSpace(t.buf[t.ptr]) {
 			break
 		}
 		t.shiftRight()
 	}
 
-	if t.ptr == len(t.text) {
+	if t.ptr == len(t.buf) {
 		return
 	}
 
-	class := t.getRuneClass(t.text[t.ptr])
+	class := t.getRuneClass(t.buf[t.ptr])
 	t.shiftRight()
 
-	for t.ptr < len(t.text) {
-		if class != t.getRuneClass(t.text[t.ptr]) {
+	for t.ptr < len(t.buf) {
+		if class != t.getRuneClass(t.buf[t.ptr]) {
 			break
 		}
 		t.shiftRight()
@@ -191,7 +195,7 @@ func (t *Textbox) moveNextWord() {
 func (t *Textbox) shiftPrevWord() {
 	for t.ptr > 0 {
 		t.shiftLeft()
-		if !unicode.IsSpace(t.text[t.ptr]) {
+		if !unicode.IsSpace(t.buf[t.ptr]) {
 			break
 		}
 	}
@@ -203,11 +207,11 @@ func (t *Textbox) shiftPrevWord() {
 	}
 
 	t.shiftLeft()
-	class := t.getRuneClass(t.text[t.ptr])
+	class := t.getRuneClass(t.buf[t.ptr])
 
 	for t.ptr > 0 {
 		t.shiftLeft()
-		if class != t.getRuneClass(t.text[t.ptr]) {
+		if class != t.getRuneClass(t.buf[t.ptr]) {
 			if t.dir == 1 {
 				t.shiftRight()
 			}
@@ -217,12 +221,12 @@ func (t *Textbox) shiftPrevWord() {
 }
 
 func (t *Textbox) selectPrevWord() {
-	if t.dir == -1 || t.ptr == len(t.text) {
+	if t.dir == -1 || t.ptr == len(t.buf) {
 		t.selectLeft()
 	}
 
 	for t.ptr > 0 {
-		if !unicode.IsSpace(t.text[t.ptr]) {
+		if !unicode.IsSpace(t.buf[t.ptr]) {
 			break
 		}
 		t.selectLeft()
@@ -232,12 +236,12 @@ func (t *Textbox) selectPrevWord() {
 		return
 	}
 
-	class := t.getRuneClass(t.text[t.ptr])
+	class := t.getRuneClass(t.buf[t.ptr])
 
 	for t.ptr > 0 {
 		t.selectLeft()
 
-		if class != t.getRuneClass(t.text[t.ptr]) {
+		if class != t.getRuneClass(t.buf[t.ptr]) {
 			if t.dir == -1 {
 				t.selectRight()
 			}
@@ -252,29 +256,29 @@ func (t *Textbox) movePrevWord() {
 }
 
 func (t *Textbox) selectNextWord() {
-	if t.ptr == len(t.text) {
+	if t.ptr == len(t.buf) {
 		return
 	}
 
 	t.selectRight()
 
-	for t.ptr < len(t.text) {
-		if !unicode.IsSpace(t.text[t.ptr]) {
+	for t.ptr < len(t.buf) {
+		if !unicode.IsSpace(t.buf[t.ptr]) {
 			break
 		}
 		t.selectRight()
 	}
 
-	if t.ptr == len(t.text) {
+	if t.ptr == len(t.buf) {
 		return
 	}
 
-	class := t.getRuneClass(t.text[t.ptr])
+	class := t.getRuneClass(t.buf[t.ptr])
 
-	for t.ptr < len(t.text)-1 {
+	for t.ptr < len(t.buf)-1 {
 		t.selectRight()
 
-		if class != t.getRuneClass(t.text[t.ptr]) {
+		if class != t.getRuneClass(t.buf[t.ptr]) {
 			if t.dir == 1 {
 				t.selectLeft()
 			}
@@ -284,19 +288,22 @@ func (t *Textbox) selectNextWord() {
 }
 
 func (t *Textbox) selectAll() {
-	t.ptr = len(t.text)
+	if len(t.buf) == 0 {
+		return
+	}
+	t.ptr = len(t.buf)
 	t.pos = 0
 }
 
 func (t *Textbox) moveToEnd() {
 	t.pos = -1
-	for i := t.ptr; i < len(t.text); i++ {
-		if t.text[i] == '\n' {
+	for i := t.ptr; i < len(t.buf); i++ {
+		if t.buf[i] == '\n' {
 			t.ptr = i
 			return
 		}
 	}
-	t.ptr = len(t.text)
+	t.ptr = len(t.buf)
 }
 
 func (t *Textbox) push(r rune) {
@@ -304,8 +311,8 @@ func (t *Textbox) push(r rune) {
 		t.pop()
 	}
 
-	t.textWidth += runewidth.RuneWidth(r)
-	t.text = append(t.text[:t.ptr], append([]rune{r}, t.text[t.ptr:]...)...)
+	t.size += runewidth.RuneWidth(r)
+	t.buf = append(t.buf[:t.ptr], append([]rune{r}, t.buf[t.ptr:]...)...)
 	t.ptr++
 }
 
@@ -314,20 +321,20 @@ func (t *Textbox) pop() {
 		if t.ptr == 0 {
 			return
 		}
-		t.textWidth -= runewidth.RuneWidth(t.text[t.ptr-1])
-		t.text = append(t.text[:t.ptr-1], t.text[t.ptr:]...)
+		t.size -= runewidth.RuneWidth(t.buf[t.ptr-1])
+		t.buf = append(t.buf[:t.ptr-1], t.buf[t.ptr:]...)
 		t.shiftLeft()
 		return
 	}
 
 	start, end := t.selectedArea()
-	if end+1 >= len(t.text) {
-		end = len(t.text) - 1
+	if end+1 >= len(t.buf) {
+		end = len(t.buf) - 1
 	}
 	for i := start; i < end+1; i++ {
-		t.textWidth -= runewidth.RuneWidth(t.text[i])
+		t.size -= runewidth.RuneWidth(t.buf[i])
 	}
-	t.text = append(t.text[:start], t.text[end+1:]...)
+	t.buf = append(t.buf[:start], t.buf[end+1:]...)
 	if t.ptr > t.pos {
 		t.ptr = t.pos
 	}
@@ -335,19 +342,14 @@ func (t *Textbox) pop() {
 }
 
 func (t *Textbox) setLabel(label string) {
-	t.label = []rune(label)
-
-	t.labelWidth = 0
-	for i := 0; i < len(t.label); i++ {
-		t.labelWidth += runewidth.RuneWidth(t.label[i])
-	}
+	t.label.SetText(label)
 }
 
 func (t *Textbox) setText(text string) {
-	t.text = []rune(text)
+	t.buf = []rune(text)
 
-	t.textWidth = 0
-	for i := 0; i < len(t.text); i++ {
-		t.textWidth += runewidth.RuneWidth(t.text[i])
+	t.size = 0
+	for i := 0; i < len(t.buf); i++ {
+		t.size += runewidth.RuneWidth(t.buf[i])
 	}
 }
