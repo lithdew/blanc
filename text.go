@@ -24,7 +24,8 @@ func (t *Text) SetWrap(wrap bool)            { t.wrap = wrap }
 func (t *Text) SetText(text string)          { t.text = text; t.width = runewidth.StringWidth(text) }
 func (t *Text) SetStyle(style tcell.Style)   { t.style = func(int) tcell.Style { return style } }
 
-func (t Text) Width() int { return t.width }
+func (t Text) Width() int   { return t.width }
+func (t Text) Text() string { return t.text }
 
 func (t Text) Draw(s tcell.Screen, r layout.Rect) {
 	x := r.X
@@ -37,7 +38,7 @@ func (t Text) Draw(s tcell.Screen, r layout.Rect) {
 		text = []rune(t.text)
 	}
 
-	for i := 0; i < len(t.text) && x <= r.X+r.W && y <= r.Y+r.H; i++ {
+	for i := 0; i < len(text) && x <= r.X+r.W && y <= r.Y+r.H; i++ {
 		if text[i] == '\n' {
 			y += 1
 			x = r.X

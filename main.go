@@ -89,8 +89,11 @@ func main() {
 		}
 	}()
 
-	sh := tcell.StyleDefault.Background(tcell.ColorWhite).Foreground(tcell.ColorBlack)
-	sb := sh.Reverse(true)
+	headerStyle := tcell.StyleDefault.Background(tcell.ColorWhite).Foreground(tcell.ColorBlack)
+	bodyStyle := headerStyle.Reverse(true)
+
+	g := NewASCIIGraph()
+	g.SetStyle(bodyStyle)
 
 loop:
 	for {
@@ -107,32 +110,27 @@ loop:
 		// header
 
 		hdr := layout.Rect{W: w, H: 1}.Align(scr, layout.Top|layout.Left)
-		clear(s, sh, hdr.X, hdr.Y, hdr.X+hdr.W-1, hdr.Y+hdr.H-1)
+		clear(s, headerStyle, hdr.X, hdr.Y, hdr.X+hdr.W-1, hdr.Y+hdr.H-1)
 
 		titleText := "flatend."
-		titleRect := layout.Text(titleText).Align(hdr, layout.Left).ShiftLeft(1)
-
 		title := NewText(titleText)
-		title.SetStyle(sh.Bold(true))
-		title.Draw(s, titleRect)
+		title.SetStyle(headerStyle.Bold(true))
+		title.Draw(s, layout.Text(title.Text()).Align(hdr, layout.Left).ShiftLeft(1))
 
 		// body
 
 		bdy := scr.PadVertical(1)
-		clear(s, sb, bdy.X, bdy.Y, bdy.X+bdy.W-1, bdy.Y+bdy.H-1)
+		clear(s, bodyStyle, bdy.X, bdy.Y, bdy.X+bdy.W-1, bdy.Y+bdy.H-1)
 
 		graph := bdy.Pad(4)
 
-		//data := []float64{3, 4, 9, 6, 2, 4, 5, 8, 5, 10, 2, 7, 2, 5, 6}
-		//txt = asciigraph.Plot(data, asciigraph.Width(graph.W), asciigraph.Height(graph.H))
-		//for i, c := range strings.Split(txt, "\n") {
-		//	puts(s, sb.Reverse(true), graph.X, graph.Y+i, c)
-		//}
-
 		sentence := "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent sollicitudin augue nisi, vel euismod mi eleifend et. Nulla maximus magna id ex malesuada vestibulum semper nec dui. Duis sagittis scelerisque augue et eleifend. Nam quis est urna. Suspendisse non sapien pellentesque, porta dui quis, hendrerit ex. Vestibulum tempor efficitur nisi quis accumsan. Vestibulum nisl magna, dignissim at eros ac, maximus scelerisque mauris. Vivamus consequat metus justo, eget venenatis urna finibus quis. Curabitur congue feugiat ipsum, sed lacinia turpis aliquam eu. Mauris rhoncus lectus id erat luctus ultricies. Fusce sodales urna eu purus ornare consectetur. In vitae leo dignissim, tincidunt velit ut, viverra velit. Quisque vel nibh nec mi bibendum tempor sit amet vitae nisl. In maximus odio eget tristique imperdiet. Fusce id nunc ut arcu ultrices convallis. Pellentesque."
-		tst := NewText(sentence)
-		tst.SetWrap(true)
-		tst.Draw(s, graph)
+		text := NewText(sentence)
+		text.SetStyle(bodyStyle)
+		text.SetWrap(true)
+		text.Draw(s, graph)
+
+		//g.Draw(s, graph)
 
 		// footer
 
