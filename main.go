@@ -13,6 +13,42 @@ func check(err error) {
 	}
 }
 
+type InputListener interface {
+	handleKeyPress(ev *tcell.EventKey) bool
+}
+
+var inputs []InputListener
+
+func eventLoop(s tcell.Screen, ch chan<- struct{}) {
+	defer close(ch)
+	for {
+		ev := s.PollEvent()
+		switch ev := ev.(type) {
+		case *tcell.EventKey:
+			handled := false
+			for _, input := range inputs {
+				handled = input.handleKeyPress(ev)
+				if handled {
+					break
+				}
+			}
+
+			if handled {
+				continue
+			}
+
+			switch ev.Key() {
+			case tcell.KeyCtrlC:
+				return
+			case tcell.KeyCtrlL:
+				s.Sync()
+			}
+		case *tcell.EventResize:
+			s.Sync()
+		}
+	}
+}
+
 func main() {
 	s, err := tcell.NewScreen()
 	check(err)
@@ -22,34 +58,39 @@ func main() {
 
 	ch := make(chan struct{})
 
-	in := newTextbox()
-	in.setLabel(">>> ")
+	input := newTextbox()
+	input.setLabel(">>> ")
+	inputs = append(inputs, input)
 
-	go func() {
-		defer close(ch)
-		for {
-			ev := s.PollEvent()
-			switch ev := ev.(type) {
-			case *tcell.EventKey:
-				if !in.handleKeyPress(ev) {
-					switch ev.Key() {
-					case tcell.KeyCtrlC:
-						return
-					case tcell.KeyCtrlL:
-						s.Sync()
-					}
-				}
-			case *tcell.EventResize:
-				s.Sync()
-			}
-		}
-	}()
+	go eventLoop(s, ch)
 
-	headerStyle := tcell.StyleDefault.Background(tcell.ColorWhite).Foreground(tcell.ColorBlack)
-	bodyStyle := headerStyle.Reverse(true)
+	titleStyle := tcell.StyleDefault.Background(tcell.ColorWhite).Foreground(tcell.ColorBlack)
 
-	g := NewASCIIGraph()
-	g.SetStyle(bodyStyle)
+	titleText := "flatend."
+	title := NewText(titleText)
+	title.SetStyle(titleStyle.Bold(true))
+
+	contentStyle := titleStyle.Reverse(true)
+
+	graph := NewASCIIGraph()
+	graph.SetStyle(contentStyle)
+
+	content := NewText(
+		"Lorem ipsum dolor sit amet, consectetur adipiscing elit." +
+			" Praesent sollicitudin augue nisi, vel euismod mi eleifend et. Nulla maximus " +
+			"magna id ex malesuada vestibulum semper nec dui. Duis sagittis scelerisque augue" +
+			" et eleifend. Nam quis est urna. Suspendisse non sapien pellentesque, porta dui" +
+			" quis, hendrerit ex. Vestibulum tempor efficitur nisi quis accumsan. Vestibulum" +
+			" nisl magna, dignissim at eros ac, maximus scelerisque mauris. Vivamus consequat" +
+			" metus justo, eget venenatis urna finibus quis. Curabitur congue feugiat ipsum, " +
+			"sed lacinia turpis aliquam eu. Mauris rhoncus lectus id erat luctus ultricies. " +
+			"Fusce sodales urna eu purus ornare consectetur. In vitae leo dignissim, tincidunt" +
+			" velit ut, viverra velit. Quisque vel nibh nec mi bibendum tempor sit amet vitae nisl." +
+			" In maximus odio eget tristique imperdiet. Fusce id nunc ut arcu ultrices convallis." +
+			" Pellentesque.",
+	)
+	content.SetWrap(true)
+	content.SetStyle(contentStyle)
 
 loop:
 	for {
@@ -61,36 +102,25 @@ loop:
 
 		w, h := s.Size()
 
-		scr := layout.Rect{X: 0, Y: 0, W: w, H: h}
+		screenRect := layout.Rect{X: 0, Y: 0, W: w, H: h}
 
 		// header
 
-		hdr := layout.Rect{W: w, H: 1}.Align(scr, layout.Top|layout.Left)
-		clear(s, headerStyle, hdr.X, hdr.Y, hdr.X+hdr.W-1, hdr.Y+hdr.H-1)
-
-		titleText := "flatend."
-		title := NewText(titleText)
-		title.SetStyle(headerStyle.Bold(true))
-		title.Draw(s, layout.Text(title.Text()).Align(hdr, layout.Left).ShiftLeft(1))
+		headerRect := layout.Rect{W: w, H: 1}.Align(screenRect, layout.Top|layout.Left)
+		clear(s, titleStyle, headerRect.X, headerRect.Y, headerRect.X+headerRect.W-1, headerRect.Y+headerRect.H-1)
+		title.Draw(s, layout.Text(title.Text()).Align(headerRect, layout.Left).ShiftLeft(1))
 
 		// body
 
-		bdy := scr.PadVertical(1)
-		clear(s, bodyStyle, bdy.X, bdy.Y, bdy.X+bdy.W-1, bdy.Y+bdy.H-1)
+		bodyRect := screenRect.PadVertical(1)
+		clear(s, contentStyle, bodyRect.X, bodyRect.Y, bodyRect.X+bodyRect.W-1, bodyRect.Y+bodyRect.H-1)
 
-		graph := bdy.Pad(4)
-
-		sentence := "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent sollicitudin augue nisi, vel euismod mi eleifend et. Nulla maximus magna id ex malesuada vestibulum semper nec dui. Duis sagittis scelerisque augue et eleifend. Nam quis est urna. Suspendisse non sapien pellentesque, porta dui quis, hendrerit ex. Vestibulum tempor efficitur nisi quis accumsan. Vestibulum nisl magna, dignissim at eros ac, maximus scelerisque mauris. Vivamus consequat metus justo, eget venenatis urna finibus quis. Curabitur congue feugiat ipsum, sed lacinia turpis aliquam eu. Mauris rhoncus lectus id erat luctus ultricies. Fusce sodales urna eu purus ornare consectetur. In vitae leo dignissim, tincidunt velit ut, viverra velit. Quisque vel nibh nec mi bibendum tempor sit amet vitae nisl. In maximus odio eget tristique imperdiet. Fusce id nunc ut arcu ultrices convallis. Pellentesque."
-		text := NewText(sentence)
-		text.SetStyle(bodyStyle)
-		text.SetWrap(true)
-		text.Draw(s, graph)
-
-		//g.Draw(s, graph)
+		content.Draw(s, bodyRect.Pad(4))
+		//graph.Draw(s, bodyRect.Pad(4))
 
 		// footer
 
-		renderFooter(s, scr, in)
+		renderFooter(s, screenRect, input)
 
 		s.Show()
 	}
