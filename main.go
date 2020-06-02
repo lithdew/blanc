@@ -143,8 +143,9 @@ func renderFooter(s tcell.Screen, scr layout.Rect, in *Textbox) {
 	ftr := layout.Rect{W: scr.W, H: 1}.Align(scr, layout.Bottom|layout.Left)
 	clear(s, style, ftr.X, ftr.Y, ftr.X+ftr.W-1, ftr.Y+ftr.H-1)
 
-	in.render(s, style, ftr.PadLeft(1))
+	inRect := ftr.PadLeft(1)
+	in.render(s, style, inRect)
 
-	//menuRect := layout.Rect{X: textRect.Right() + 1, Y: textRect.Y - 10, W: 30, H: 10}
-	//clear(s, tcell.StyleDefault.Background(tcell.ColorBlue), menuRect.Left(), menuRect.Top(), menuRect.Right(), menuRect.Bottom())
+	menuRect := layout.Rect{X: in.cursorX(inRect) + 1, Y: ftr.Y - 10, W: 30, H: 10}
+	clear(s, tcell.StyleDefault.Background(tcell.ColorBlue), menuRect.Left(), menuRect.Top(), menuRect.Right(), menuRect.Bottom())
 }

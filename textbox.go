@@ -8,8 +8,11 @@ import (
 )
 
 type Textbox struct {
-	label []rune
-	text  []rune
+	label      []rune
+	labelWidth int
+
+	text      []rune
+	textWidth int
 
 	ptr int // cursor start index
 	pos int // cursor end index
@@ -18,6 +21,14 @@ type Textbox struct {
 
 func newTextbox() *Textbox {
 	return &Textbox{pos: -1, dir: -1}
+}
+
+func (t *Textbox) cursorX(r layout.Rect) int {
+	x := r.X + t.labelWidth
+	for i := 0; i < t.ptr; i++ {
+		x += runewidth.RuneWidth(t.text[i])
+	}
+	return x
 }
 
 func (t *Textbox) selectedArea() (start int, end int) {
@@ -293,6 +304,7 @@ func (t *Textbox) push(r rune) {
 		t.pop()
 	}
 
+	t.textWidth += runewidth.RuneWidth(r)
 	t.text = append(t.text[:t.ptr], append([]rune{r}, t.text[t.ptr:]...)...)
 	t.ptr++
 }
@@ -302,6 +314,7 @@ func (t *Textbox) pop() {
 		if t.ptr == 0 {
 			return
 		}
+		t.textWidth -= runewidth.RuneWidth(t.text[t.ptr-1])
 		t.text = append(t.text[:t.ptr-1], t.text[t.ptr:]...)
 		t.shiftLeft()
 		return
@@ -310,6 +323,9 @@ func (t *Textbox) pop() {
 	start, end := t.selectedArea()
 	if end+1 >= len(t.text) {
 		end = len(t.text) - 1
+	}
+	for i := start; i < end+1; i++ {
+		t.textWidth -= runewidth.RuneWidth(t.text[i])
 	}
 	t.text = append(t.text[:start], t.text[end+1:]...)
 	if t.ptr > t.pos {
@@ -320,8 +336,18 @@ func (t *Textbox) pop() {
 
 func (t *Textbox) setLabel(label string) {
 	t.label = []rune(label)
+
+	t.labelWidth = 0
+	for i := 0; i < len(t.label); i++ {
+		t.labelWidth += runewidth.RuneWidth(t.label[i])
+	}
 }
 
 func (t *Textbox) setText(text string) {
 	t.text = []rune(text)
+
+	t.textWidth = 0
+	for i := 0; i < len(t.text); i++ {
+		t.textWidth += runewidth.RuneWidth(t.text[i])
+	}
 }
