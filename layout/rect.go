@@ -11,19 +11,27 @@ func (r Rect) Intersects(other Rect) bool {
 	return r.Left() < other.Right() && r.Right() > other.Right() && r.Top() > r.Bottom() && r.Bottom() < r.Top()
 }
 
-func (r Rect) Top() int    { return r.Y }
-func (r Rect) Bottom() int { return r.Y + r.H - 1 }
-func (r Rect) Left() int   { return r.X }
-func (r Rect) Right() int  { return r.X + r.W - 1 }
+func (r Rect) Top() int     { return r.Y }
+func (r Rect) Bottom() int  { return r.Y + r.H - 1 }
+func (r Rect) Left() int    { return r.X }
+func (r Rect) Right() int   { return r.X + r.W - 1 }
+func (r Rect) CenterX() int { return r.X + (r.W-1)/2 }
+func (r Rect) CenterY() int { return r.Y + (r.H-1)/2 }
 
-func (r Rect) Align(parent Rect, align AlignType) Rect {
-	return Align(parent, r, align)
-}
+func (r Rect) AlignTo(parent Rect, align AlignType) Rect { return Align(parent, r, align) }
+func (r Rect) Align(align AlignType) Rect                { return Align(r, Rect{}, align) }
 
 func (r Rect) ShiftTop(shift int) Rect    { r.Y += shift; return r }
 func (r Rect) ShiftBottom(shift int) Rect { r.Y -= shift; return r }
 func (r Rect) ShiftLeft(shift int) Rect   { r.X += shift; return r }
 func (r Rect) ShiftRight(shift int) Rect  { r.X -= shift; return r }
+
+func (r Rect) Height(height int) Rect { r.H = height; return r }
+func (r Rect) Width(width int) Rect   { r.W = width; return r }
+
+func (r Rect) SizeOf(parent Rect) Rect   { r.W = parent.W; r.H = parent.H; return r }
+func (r Rect) HeightOf(parent Rect) Rect { r.H = parent.H; return r }
+func (r Rect) WidthOf(parent Rect) Rect  { r.W = parent.W; return r }
 
 func (r Rect) PadLeft(pad int) Rect {
 	if r.W < pad {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gdamore/tcell"
+	"github.com/lithdew/blanc/layout"
 )
 
 var TcellFrame = [...]rune{
@@ -22,6 +23,10 @@ var (
 	UnicodeAlt2Frame = [...]rune{'╔', '╗', '╚', '╝', '═', '═', '║', '║'}
 	SpaceFrame       = [...]rune{' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}
 )
+
+func Clear(s tcell.Screen, style tcell.Style, r layout.Rect) {
+	clear(s, style, r.Left(), r.Top(), r.Right(), r.Bottom())
+}
 
 func clear(s tcell.Screen, style tcell.Style, x1, y1, x2, y2 int) {
 	if y2 < y1 {

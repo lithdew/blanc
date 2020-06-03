@@ -103,14 +103,14 @@ loop:
 
 		// header
 
-		headerRect := layout.Rect{W: w, H: 1}.Align(screenRect, layout.Top|layout.Left)
-		clear(s, titleStyle, headerRect.X, headerRect.Y, headerRect.X+headerRect.W-1, headerRect.Y+headerRect.H-1)
-		title.Draw(s, layout.Text(title.Text()).Align(headerRect, layout.Left).ShiftLeft(1))
+		headerRect := screenRect.Align(layout.Top | layout.Left).WidthOf(screenRect).Height(1)
+		Clear(s, titleStyle, headerRect)
+		title.Draw(s, layout.Text(title.Text()).AlignTo(headerRect, layout.Left).ShiftLeft(1))
 
 		// body
 
 		bodyRect := screenRect.PadVertical(1)
-		clear(s, contentStyle, bodyRect.X, bodyRect.Y, bodyRect.X+bodyRect.W-1, bodyRect.Y+bodyRect.H-1)
+		Clear(s, contentStyle, bodyRect)
 
 		content.Draw(s, bodyRect.Pad(4))
 		//graph.Draw(s, bodyRect.Pad(4))
@@ -123,36 +123,44 @@ loop:
 	}
 }
 
-func renderFooter(s tcell.Screen, scr layout.Rect, in *Textbox) {
+func renderFooter(s tcell.Screen, screenRect layout.Rect, input *Textbox) {
 	style := tcell.StyleDefault.Reverse(true)
 
-	ftr := layout.Rect{W: scr.W, H: 1}.Align(scr, layout.Bottom|layout.Left)
-	clear(s, style, ftr.X, ftr.Y, ftr.X+ftr.W-1, ftr.Y+ftr.H-1)
+	footerRect := screenRect.Align(layout.Bottom | layout.Left).WidthOf(screenRect).Height(1)
+	Clear(s, style, footerRect)
 
-	inRect := ftr.PadLeft(1)
-	in.render(s, style, inRect)
+	inputRect := footerRect.PadLeft(1)
+	input.render(s, style, inputRect)
 
-	if len(in.getText()) > 0 {
+	if len(input.getText()) > 0 {
 		items := []string{"hello", "world", "testing"}
 
-		menuRect := layout.Rect{X: in.cursorX(inRect) + 1, Y: ftr.Y - len(items), W: 30, H: len(items)}
-		clear(s, tcell.StyleDefault.Background(tcell.ColorGray), menuRect.Left(), menuRect.Top(), menuRect.Right(), menuRect.Bottom())
-
+		bg := tcell.StyleDefault.Background(tcell.ColorGray)
 		first := tcell.StyleDefault.Background(tcell.ColorWhite).Foreground(tcell.ColorBlack)
 		second := tcell.StyleDefault.Background(tcell.ColorDimGray).Foreground(tcell.ColorWhite)
 
-		for i := range items {
-			itemRect := layout.Rect{X: menuRect.X, Y: menuRect.Y + i, W: menuRect.W, H: 1}
-
-			view := NewText(" " + items[i])
-
-			if i%2 == 1 {
-				view.SetStyle(first)
-			} else {
-				view.SetStyle(second)
+		style := func(i int) tcell.Style {
+			if i == -1 {
+				return bg
 			}
+			if i%2 == 1 {
+				return first
+			}
+			return second
+		}
 
-			view.Draw(s, itemRect)
+		menuRect := layout.Rect{X: input.cursorX(inputRect) + 1, Y: footerRect.Y - len(items), W: 30, H: len(items)}
+		Clear(s, style(-1), menuRect)
+
+		for i := range items {
+			itemRect := menuRect.Align(layout.Top | layout.Left).ShiftTop(i).WidthOf(menuRect).Height(1)
+			itemStyle := style(i)
+
+			Clear(s, itemStyle, itemRect)
+
+			item := NewText(" " + items[i] + " ")
+			item.SetStyle(itemStyle)
+			item.Draw(s, itemRect)
 		}
 	}
 }

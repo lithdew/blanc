@@ -14,34 +14,28 @@ const (
 	Right
 )
 
-func (a AlignType) Is(align AlignType) bool {
-	return a&align != 0
-}
+func (a AlignType) Is(align AlignType) bool { return a&align != 0 }
 
-func (a AlignType) Valid() bool {
-	return !(a.Is(Top) && a.Is(Bottom) || a.Is(Left) && a.Is(Right))
-}
+func (a AlignType) Valid() bool { return !(a.Is(Top) && a.Is(Bottom) || a.Is(Left) && a.Is(Right)) }
 
 func Align(parent, child Rect, a AlignType) Rect {
 	switch {
 	case a.Is(Left):
-		child.X = parent.X
+		child.X = parent.Left()
 	case a.Is(Right):
-		child.X = parent.X + (parent.W - 1) - child.W
+		child.X = parent.Right() - child.W
 	default:
-		child.X = parent.X + (parent.W-1)/2 - child.W/2
+		child.X = parent.CenterX() - child.W/2
 	}
 	switch {
 	case a.Is(Top):
-		child.Y = parent.Y
+		child.Y = parent.Top()
 	case a.Is(Bottom):
-		child.Y = parent.Y + parent.H - child.H
+		child.Y = parent.Bottom() - child.H
 	default:
-		child.Y = parent.Y + (parent.H-1)/2 - child.H/2
+		child.Y = parent.CenterY() - child.H/2
 	}
 	return child
 }
 
-func Text(text string) Rect {
-	return Rect{X: 0, Y: 0, W: runewidth.StringWidth(text), H: 1}
-}
+func Text(text string) Rect { return Rect{X: 0, Y: 0, W: runewidth.StringWidth(text), H: 1} }

@@ -39,13 +39,6 @@ func (t Text) Draw(s tcell.Screen, r layout.Rect) {
 		text = []rune(t.text)
 	}
 
-	style := tcell.StyleDefault
-	if t.style != nil {
-		style = t.style(-1)
-	}
-
-	clear(s, style, r.Left(), r.Top(), r.Right(), r.Bottom())
-
 	for i := 0; i < len(text) && x <= r.X+r.W && y <= r.Y+r.H; i++ {
 		if text[i] == '\n' {
 			y += 1
