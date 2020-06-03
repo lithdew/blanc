@@ -22,13 +22,34 @@ type Textbox struct {
 	dir int // -1 is left, 1 is right
 }
 
-func newTextbox() *Textbox {
+func NewTextbox() *Textbox {
 	return &Textbox{
 		selected: tcell.StyleDefault.Reverse(true),
 
 		pos: -1,
 		dir: -1,
 	}
+}
+
+func (t *Textbox) resetCursorLeft() {
+	if t.pos == -1 {
+		return
+	}
+	if t.ptr >= t.pos {
+		t.ptr = t.pos
+	}
+	t.ptr++
+	t.pos = -1
+}
+
+func (t *Textbox) resetCursorRight() {
+	if t.pos == -1 {
+		return
+	}
+	if t.ptr <= t.pos {
+		t.ptr = t.pos
+	}
+	t.pos = -1
 }
 
 func (t *Textbox) getRuneClass(r rune) int {
@@ -188,27 +209,6 @@ func (t *Textbox) SelectRight() {
 	}
 
 	t.ShiftRight()
-}
-
-func (t *Textbox) resetCursorLeft() {
-	if t.pos == -1 {
-		return
-	}
-	if t.ptr >= t.pos {
-		t.ptr = t.pos
-	}
-	t.ptr++
-	t.pos = -1
-}
-
-func (t *Textbox) resetCursorRight() {
-	if t.pos == -1 {
-		return
-	}
-	if t.ptr <= t.pos {
-		t.ptr = t.pos
-	}
-	t.pos = -1
 }
 
 func (t *Textbox) ShiftLeft() {
@@ -411,6 +411,7 @@ func (t *Textbox) Pop() {
 }
 
 func (t *Textbox) SetLabel(label string) { t.label.SetText(label) }
+
 func (t *Textbox) SetText(text string) {
 	t.buf = []rune(text)
 

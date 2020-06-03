@@ -55,7 +55,7 @@ func main() {
 	inputStyle := tcell.StyleDefault.Reverse(true)
 	selectedStyle := tcell.StyleDefault.Background(tcell.ColorDarkGray).Foreground(tcell.ColorWhite)
 
-	input := newTextbox()
+	input := NewTextbox()
 	input.SetLabel(">>> ")
 	input.SetTextStyle(inputStyle)
 	input.SetLabelStyle(inputStyle)
