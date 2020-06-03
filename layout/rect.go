@@ -18,13 +18,16 @@ func (r Rect) Right() int   { return r.X + r.W - 1 }
 func (r Rect) CenterX() int { return r.X + (r.W-1)/2 }
 func (r Rect) CenterY() int { return r.Y + (r.H-1)/2 }
 
+func (r Rect) PositionTo(parent Rect, align AlignType) Rect { return Position(parent, r, align) }
+func (r Rect) Position(align AlignType) Rect                { return Position(r, Rect{}, align) }
+
 func (r Rect) AlignTo(parent Rect, align AlignType) Rect { return Align(parent, r, align) }
 func (r Rect) Align(align AlignType) Rect                { return Align(r, Rect{}, align) }
 
-func (r Rect) ShiftTop(shift int) Rect    { r.Y += shift; return r }
-func (r Rect) ShiftBottom(shift int) Rect { r.Y -= shift; return r }
-func (r Rect) ShiftLeft(shift int) Rect   { r.X -= shift; return r }
-func (r Rect) ShiftRight(shift int) Rect  { r.X += shift; return r }
+func (r Rect) MoveUp(shift int) Rect    { r.Y -= shift; return r }
+func (r Rect) MoveDown(shift int) Rect  { r.Y += shift; return r }
+func (r Rect) MoveLeft(shift int) Rect  { r.X -= shift; return r }
+func (r Rect) MoveRight(shift int) Rect { r.X += shift; return r }
 
 func (r Rect) Height(height int) Rect { r.H = height; return r }
 func (r Rect) Width(width int) Rect   { r.W = width; return r }

@@ -66,7 +66,7 @@ func main() {
 	titleStyle := tcell.StyleDefault.Background(tcell.ColorWhite).Foreground(tcell.ColorBlack)
 
 	title := NewText("flatend.")
-	title.SetStyle(titleStyle.Bold(true))
+	title.SetStyle(titleStyle)
 
 	contentStyle := titleStyle.Reverse(true)
 
@@ -106,9 +106,9 @@ func main() {
 
 		// header
 
-		headerRect := screenRect.Align(layout.Top | layout.Left).WidthOf(screenRect).Height(1)
+		headerRect := screenRect.Position(layout.Top | layout.Left).WidthOf(screenRect).Height(1)
 		Clear(screen, titleStyle, headerRect)
-		title.Draw(screen, layout.Text(title.Text()).AlignTo(headerRect, layout.Left).ShiftRight(1))
+		title.Draw(screen, layout.Text(title.Text()).PositionTo(headerRect, layout.Left).MoveRight(1))
 
 		// body
 
@@ -117,6 +117,20 @@ func main() {
 
 		content.Draw(screen, bodyRect.Pad(4))
 		//graph.Draw(screen, bodyRect.Pad(4))
+
+		tabRect := headerRect.Position(layout.Top | layout.Center).Width(headerRect.W / 2)
+
+		tab1 := NewText(" hello ")
+		tab1.SetStyle(tcell.StyleDefault.Background(tcell.ColorBlack).Foreground(tcell.ColorWhite))
+
+		tab1Rect := layout.Text(tab1.Text()).PositionTo(tabRect, layout.Center)
+		tab1.Draw(screen, tab1Rect)
+
+		tab2 := NewText(" world ")
+		tab2.SetStyle(tcell.StyleDefault.Background(tcell.ColorWhite).Foreground(tcell.ColorBlack))
+
+		tab2Rect := layout.Text(tab2.Text()).AlignTo(tab1Rect, layout.Right)
+		tab2.Draw(screen, tab2Rect)
 
 		// footer
 
@@ -127,7 +141,7 @@ func main() {
 }
 
 func renderFooter(s tcell.Screen, screenRect layout.Rect, input *Textbox) {
-	footerRect := screenRect.Align(layout.Bottom | layout.Left).WidthOf(screenRect).Height(1)
+	footerRect := screenRect.Position(layout.Bottom | layout.Left).WidthOf(screenRect).Height(1)
 	Clear(s, tcell.StyleDefault.Reverse(true), footerRect)
 
 	inputRect := footerRect.PadLeft(1)
@@ -167,7 +181,7 @@ func renderMenu(s tcell.Screen, input *Textbox, inputRect layout.Rect) {
 	Clear(s, style(-1), menuRect)
 
 	for i := range items {
-		itemRect := menuRect.Align(layout.Top | layout.Left).ShiftTop(i).WidthOf(menuRect).Height(1)
+		itemRect := menuRect.Position(layout.Top | layout.Left).MoveDown(i).WidthOf(menuRect).Height(1)
 		itemStyle := style(i)
 
 		Clear(s, itemStyle, itemRect)
