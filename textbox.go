@@ -31,6 +31,17 @@ func newTextbox() *Textbox {
 	}
 }
 
+func (t *Textbox) getRuneClass(r rune) int {
+	switch {
+	case unicode.IsSpace(r):
+		return 0
+	case unicode.IsPunct(r):
+		return 1
+	default:
+		return 2
+	}
+}
+
 func (t *Textbox) CursorX(r layout.Rect) int {
 	x := r.X + t.label.width
 	for i := 0; i < t.ptr; i++ {
@@ -52,44 +63,44 @@ func (t *Textbox) HandleEvent(e tcell.Event) bool {
 
 	switch ev.Key() {
 	case tcell.KeyDelete, tcell.KeyDEL:
-		t.pop()
+		t.Pop()
 		return true
 	case tcell.KeyCtrlA:
-		t.selectAll()
+		t.SelectAll()
 		return true
 	case tcell.KeyCtrlW:
-		t.moveNextWord()
+		t.MoveToNextWord()
 		return true
 	case tcell.KeyCtrlU:
-		t.moveToEnd()
+		t.MoveToEnd()
 		return true
 	case tcell.KeyLeft:
 		switch {
 		case ctrl && shift:
-			t.selectPrevWord()
+			t.SelectPrevWord()
 		case ctrl:
-			t.movePrevWord()
+			t.MoveToPrevWord()
 		case shift:
-			t.selectLeft()
+			t.SelectLeft()
 		default:
-			t.moveLeft()
+			t.MoveLeft()
 		}
 		return true
 	case tcell.KeyRight:
 		switch {
 		case ctrl && shift:
-			t.selectNextWord()
+			t.SelectNextWord()
 		case ctrl:
-			t.moveNextWord()
+			t.MoveToNextWord()
 		case shift:
-			t.selectRight()
+			t.SelectRight()
 		default:
-			t.moveRight()
+			t.MoveRight()
 		}
 		return true
 	case tcell.KeyRune:
 		if ev.Key() == tcell.KeyRune {
-			t.push(ev.Rune())
+			t.Push(ev.Rune())
 		}
 		return true
 	default:
@@ -100,7 +111,7 @@ func (t *Textbox) HandleEvent(e tcell.Event) bool {
 func (t Textbox) Text() string  { return string(t.buf) }
 func (t Textbox) Label() string { return t.label.Text() }
 
-func (t *Textbox) selectedArea() (start int, end int) {
+func (t *Textbox) Selected() (start int, end int) {
 	start = t.ptr // selection start index
 	if t.pos != -1 && start > t.pos {
 		start = t.pos
@@ -124,7 +135,7 @@ func (t *Textbox) Draw(s tcell.Screen, r layout.Rect) {
 	var styleFunc StyleFunc
 	if t.style != nil {
 		if t.selected != tcell.StyleDefault {
-			start, end := t.selectedArea()
+			start, end := t.Selected()
 
 			styleFunc = func(i int) tcell.Style {
 				if t.pos != -1 && i >= start && i <= end {
@@ -148,7 +159,7 @@ func (t *Textbox) Draw(s tcell.Screen, r layout.Rect) {
 	}
 }
 
-func (t *Textbox) selectLeft() {
+func (t *Textbox) SelectLeft() {
 	if t.pos != -1 && t.ptr == t.pos && t.dir == 1 {
 		t.pos = -1
 		return
@@ -157,16 +168,16 @@ func (t *Textbox) selectLeft() {
 		t.pos = t.ptr - 1
 		t.dir = -1
 	}
-	t.shiftLeft()
+	t.ShiftLeft()
 }
 
-func (t *Textbox) selectRight() {
+func (t *Textbox) SelectRight() {
 	if t.ptr == len(t.buf) {
 		return
 	}
 
 	if t.pos != -1 && t.ptr == t.pos && t.dir == -1 {
-		t.shiftRight()
+		t.ShiftRight()
 		t.pos = -1
 		return
 	}
@@ -176,7 +187,7 @@ func (t *Textbox) selectRight() {
 		return
 	}
 
-	t.shiftRight()
+	t.ShiftRight()
 }
 
 func (t *Textbox) resetCursorLeft() {
@@ -200,47 +211,38 @@ func (t *Textbox) resetCursorRight() {
 	t.pos = -1
 }
 
-func (t *Textbox) shiftLeft() {
+func (t *Textbox) ShiftLeft() {
 	t.ptr--
 	if t.ptr < 0 {
 		t.ptr = 0
 	}
 }
 
-func (t *Textbox) moveLeft() {
-	t.resetCursorLeft()
-	t.shiftLeft()
-}
-
-func (t *Textbox) shiftRight() {
+func (t *Textbox) ShiftRight() {
 	t.ptr++
 	if t.ptr > len(t.buf) {
 		t.ptr = len(t.buf)
 	}
 }
 
-func (t *Textbox) moveRight() {
+func (t *Textbox) MoveLeft() {
+	t.resetCursorLeft()
+	t.ShiftLeft()
+}
+
+func (t *Textbox) MoveRight() {
 	t.resetCursorRight()
-	t.shiftRight()
+	t.ShiftRight()
 }
 
-func (t *Textbox) getRuneClass(r rune) int {
-	switch {
-	case unicode.IsSpace(r):
-		return 0
-	case unicode.IsPunct(r):
-		return 1
-	default:
-		return 2
-	}
-}
+func (t *Textbox) MoveToNextWord() {
+	t.resetCursorLeft()
 
-func (t *Textbox) shiftNextWord() {
 	for t.ptr < len(t.buf) {
 		if !unicode.IsSpace(t.buf[t.ptr]) {
 			break
 		}
-		t.shiftRight()
+		t.ShiftRight()
 	}
 
 	if t.ptr == len(t.buf) {
@@ -248,59 +250,26 @@ func (t *Textbox) shiftNextWord() {
 	}
 
 	class := t.getRuneClass(t.buf[t.ptr])
-	t.shiftRight()
+	t.ShiftRight()
 
 	for t.ptr < len(t.buf) {
 		if class != t.getRuneClass(t.buf[t.ptr]) {
 			break
 		}
-		t.shiftRight()
+		t.ShiftRight()
 	}
 }
 
-func (t *Textbox) moveNextWord() {
-	t.resetCursorLeft()
-	t.shiftNextWord()
-}
-
-func (t *Textbox) shiftPrevWord() {
-	for t.ptr > 0 {
-		t.shiftLeft()
-		if !unicode.IsSpace(t.buf[t.ptr]) {
-			break
-		}
-	}
-
-	t.shiftRight()
-
-	if t.ptr == 0 {
-		return
-	}
-
-	t.shiftLeft()
-	class := t.getRuneClass(t.buf[t.ptr])
-
-	for t.ptr > 0 {
-		t.shiftLeft()
-		if class != t.getRuneClass(t.buf[t.ptr]) {
-			if t.dir == 1 {
-				t.shiftRight()
-			}
-			break
-		}
-	}
-}
-
-func (t *Textbox) selectPrevWord() {
+func (t *Textbox) SelectPrevWord() {
 	if t.dir == -1 || t.ptr == len(t.buf) {
-		t.selectLeft()
+		t.SelectLeft()
 	}
 
 	for t.ptr > 0 {
 		if !unicode.IsSpace(t.buf[t.ptr]) {
 			break
 		}
-		t.selectLeft()
+		t.SelectLeft()
 	}
 
 	if t.ptr == 0 {
@@ -310,34 +279,59 @@ func (t *Textbox) selectPrevWord() {
 	class := t.getRuneClass(t.buf[t.ptr])
 
 	for t.ptr > 0 {
-		t.selectLeft()
+		t.SelectLeft()
 
 		if class != t.getRuneClass(t.buf[t.ptr]) {
 			if t.dir == -1 {
-				t.selectRight()
+				t.SelectRight()
 			}
 			break
 		}
 	}
 }
 
-func (t *Textbox) movePrevWord() {
+func (t *Textbox) MoveToPrevWord() {
 	t.resetCursorRight()
-	t.shiftPrevWord()
+
+	for t.ptr > 0 {
+		t.ShiftLeft()
+		if !unicode.IsSpace(t.buf[t.ptr]) {
+			break
+		}
+	}
+
+	t.ShiftRight()
+
+	if t.ptr == 0 {
+		return
+	}
+
+	t.ShiftLeft()
+	class := t.getRuneClass(t.buf[t.ptr])
+
+	for t.ptr > 0 {
+		t.ShiftLeft()
+		if class != t.getRuneClass(t.buf[t.ptr]) {
+			if t.dir == 1 {
+				t.ShiftRight()
+			}
+			break
+		}
+	}
 }
 
-func (t *Textbox) selectNextWord() {
+func (t *Textbox) SelectNextWord() {
 	if t.ptr == len(t.buf) {
 		return
 	}
 
-	t.selectRight()
+	t.SelectRight()
 
 	for t.ptr < len(t.buf) {
 		if !unicode.IsSpace(t.buf[t.ptr]) {
 			break
 		}
-		t.selectRight()
+		t.SelectRight()
 	}
 
 	if t.ptr == len(t.buf) {
@@ -347,18 +341,18 @@ func (t *Textbox) selectNextWord() {
 	class := t.getRuneClass(t.buf[t.ptr])
 
 	for t.ptr < len(t.buf)-1 {
-		t.selectRight()
+		t.SelectRight()
 
 		if class != t.getRuneClass(t.buf[t.ptr]) {
 			if t.dir == 1 {
-				t.selectLeft()
+				t.SelectLeft()
 			}
 			break
 		}
 	}
 }
 
-func (t *Textbox) selectAll() {
+func (t *Textbox) SelectAll() {
 	if len(t.buf) == 0 {
 		return
 	}
@@ -366,7 +360,7 @@ func (t *Textbox) selectAll() {
 	t.pos = 0
 }
 
-func (t *Textbox) moveToEnd() {
+func (t *Textbox) MoveToEnd() {
 	t.pos = -1
 	for i := t.ptr; i < len(t.buf); i++ {
 		if t.buf[i] == '\n' {
@@ -377,32 +371,32 @@ func (t *Textbox) moveToEnd() {
 	t.ptr = len(t.buf)
 }
 
-func (t *Textbox) insert(pos int, r rune) {
+func (t *Textbox) Insert(pos int, r rune) {
 	t.size += runewidth.RuneWidth(r)
 	t.buf = append(t.buf[:pos], append([]rune{r}, t.buf[pos:]...)...)
 }
 
-func (t *Textbox) push(r rune) {
+func (t *Textbox) Push(r rune) {
 	if t.pos != -1 {
-		t.pop()
+		t.Pop()
 	}
 
-	t.insert(t.ptr, r)
+	t.Insert(t.ptr, r)
 	t.ptr++
 }
 
-func (t *Textbox) pop() {
+func (t *Textbox) Pop() {
 	if t.pos == -1 {
 		if t.ptr == 0 {
 			return
 		}
 		t.size -= runewidth.RuneWidth(t.buf[t.ptr-1])
 		t.buf = append(t.buf[:t.ptr-1], t.buf[t.ptr:]...)
-		t.shiftLeft()
+		t.ShiftLeft()
 		return
 	}
 
-	start, end := t.selectedArea()
+	start, end := t.Selected()
 	if end+1 >= len(t.buf) {
 		end = len(t.buf) - 1
 	}
@@ -416,11 +410,8 @@ func (t *Textbox) pop() {
 	t.pos = -1
 }
 
-func (t *Textbox) SetLabel(label string) {
-	t.label.SetText(label)
-}
-
-func (t *Textbox) setText(text string) {
+func (t *Textbox) SetLabel(label string) { t.label.SetText(label) }
+func (t *Textbox) SetText(text string) {
 	t.buf = []rune(text)
 
 	t.size = 0
