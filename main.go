@@ -41,9 +41,7 @@ func eventLoop(screen tcell.Screen, ch chan<- struct{}) {
 			screen.Sync()
 		}
 
-		if handleEvent(ev) {
-			continue
-		}
+		handleEvent(ev)
 	}
 }
 
@@ -58,7 +56,7 @@ func main() {
 	selectedStyle := tcell.StyleDefault.Background(tcell.ColorDarkGray).Foreground(tcell.ColorWhite)
 
 	input := newTextbox()
-	input.setLabel(">>> ")
+	input.SetLabel(">>> ")
 	input.SetTextStyle(inputStyle)
 	input.SetLabelStyle(inputStyle)
 	input.SetSelectedStyle(selectedStyle)
@@ -161,8 +159,8 @@ func renderMenu(s tcell.Screen, input *Textbox, inputRect layout.Rect) {
 	}
 
 	menuRect := layout.Rect{
-		X: input.cursorX(inputRect) + 1,
-		Y: inputRect.Y - len(items),
+		X: input.CursorX(inputRect) + 1,
+		Y: inputRect.Top() - len(items),
 		W: 30,
 		H: len(items),
 	}

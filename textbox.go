@@ -31,7 +31,7 @@ func newTextbox() *Textbox {
 	}
 }
 
-func (t *Textbox) cursorX(r layout.Rect) int {
+func (t *Textbox) CursorX(r layout.Rect) int {
 	x := r.X + t.label.width
 	for i := 0; i < t.ptr; i++ {
 		x += runewidth.RuneWidth(t.buf[i])
@@ -416,7 +416,7 @@ func (t *Textbox) pop() {
 	t.pos = -1
 }
 
-func (t *Textbox) setLabel(label string) {
+func (t *Textbox) SetLabel(label string) {
 	t.label.SetText(label)
 }
 
