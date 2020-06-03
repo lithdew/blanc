@@ -109,7 +109,7 @@ func main() {
 
 		headerRect := screenRect.Align(layout.Top | layout.Left).WidthOf(screenRect).Height(1)
 		Clear(screen, titleStyle, headerRect)
-		title.Draw(screen, layout.Text(title.Text()).AlignTo(headerRect, layout.Left).ShiftLeft(1))
+		title.Draw(screen, layout.Text(title.Text()).AlignTo(headerRect, layout.Left).ShiftRight(1))
 
 		// body
 

@@ -23,8 +23,8 @@ func (r Rect) Align(align AlignType) Rect                { return Align(r, Rect{
 
 func (r Rect) ShiftTop(shift int) Rect    { r.Y += shift; return r }
 func (r Rect) ShiftBottom(shift int) Rect { r.Y -= shift; return r }
-func (r Rect) ShiftLeft(shift int) Rect   { r.X += shift; return r }
-func (r Rect) ShiftRight(shift int) Rect  { r.X -= shift; return r }
+func (r Rect) ShiftLeft(shift int) Rect   { r.X -= shift; return r }
+func (r Rect) ShiftRight(shift int) Rect  { r.X += shift; return r }
 
 func (r Rect) Height(height int) Rect { r.H = height; return r }
 func (r Rect) Width(width int) Rect   { r.W = width; return r }
