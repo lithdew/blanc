@@ -31,7 +31,12 @@ func (t *Textbox) cursorX(r layout.Rect) int {
 	return x
 }
 
-func (t *Textbox) handleKeyPress(ev *tcell.EventKey) bool {
+func (t *Textbox) HandleEvent(e tcell.Event) bool {
+	ev, ok := e.(*tcell.EventKey)
+	if !ok {
+		return false
+	}
+
 	m := ev.Modifiers()
 
 	ctrl := m&tcell.ModCtrl != 0
@@ -361,13 +366,17 @@ func (t *Textbox) moveToEnd() {
 	t.ptr = len(t.buf)
 }
 
+func (t *Textbox) insert(pos int, r rune) {
+	t.size += runewidth.RuneWidth(r)
+	t.buf = append(t.buf[:pos], append([]rune{r}, t.buf[pos:]...)...)
+}
+
 func (t *Textbox) push(r rune) {
 	if t.pos != -1 {
 		t.pop()
 	}
 
-	t.size += runewidth.RuneWidth(r)
-	t.buf = append(t.buf[:t.ptr], append([]rune{r}, t.buf[t.ptr:]...)...)
+	t.insert(t.ptr, r)
 	t.ptr++
 }
 

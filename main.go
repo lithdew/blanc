@@ -13,30 +13,27 @@ func check(err error) {
 	}
 }
 
-type InputListener interface {
-	handleKeyPress(ev *tcell.EventKey) bool
-}
-
 var inputs []InputListener
 
 func eventLoop(s tcell.Screen, ch chan<- struct{}) {
 	defer close(ch)
 	for {
 		ev := s.PollEvent()
+
+		handled := false
+		for _, input := range inputs {
+			handled = input.HandleEvent(ev)
+			if handled {
+				break
+			}
+		}
+
+		if handled {
+			continue
+		}
+
 		switch ev := ev.(type) {
 		case *tcell.EventKey:
-			handled := false
-			for _, input := range inputs {
-				handled = input.handleKeyPress(ev)
-				if handled {
-					break
-				}
-			}
-
-			if handled {
-				continue
-			}
-
 			switch ev.Key() {
 			case tcell.KeyCtrlC:
 				return
@@ -141,7 +138,7 @@ func renderFooter(s tcell.Screen, scr layout.Rect, in *Textbox) {
 		menuRect := layout.Rect{X: in.cursorX(inRect) + 1, Y: ftr.Y - len(items), W: 30, H: len(items)}
 		clear(s, tcell.StyleDefault.Background(tcell.ColorGray), menuRect.Left(), menuRect.Top(), menuRect.Right(), menuRect.Bottom())
 
-		first := tcell.StyleDefault.Background(tcell.ColorDarkGray).Foreground(tcell.ColorWhite)
+		first := tcell.StyleDefault.Background(tcell.ColorWhite).Foreground(tcell.ColorBlack)
 		second := tcell.StyleDefault.Background(tcell.ColorDimGray).Foreground(tcell.ColorWhite)
 
 		for i := range items {
