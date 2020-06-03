@@ -13,24 +13,21 @@ func check(err error) {
 	}
 }
 
-var inputs []InputListener
+var handlers []tcell.EventHandler
 
-func eventLoop(s tcell.Screen, ch chan<- struct{}) {
+func handleEvent(ev tcell.Event) bool {
+	for _, handler := range handlers {
+		if handler.HandleEvent(ev) {
+			return true
+		}
+	}
+	return false
+}
+
+func eventLoop(screen tcell.Screen, ch chan<- struct{}) {
 	defer close(ch)
 	for {
-		ev := s.PollEvent()
-
-		handled := false
-		for _, input := range inputs {
-			handled = input.HandleEvent(ev)
-			if handled {
-				break
-			}
-		}
-
-		if handled {
-			continue
-		}
+		ev := screen.PollEvent()
 
 		switch ev := ev.(type) {
 		case *tcell.EventKey:
@@ -38,22 +35,24 @@ func eventLoop(s tcell.Screen, ch chan<- struct{}) {
 			case tcell.KeyCtrlC:
 				return
 			case tcell.KeyCtrlL:
-				s.Sync()
+				screen.Sync()
 			}
 		case *tcell.EventResize:
-			s.Sync()
+			screen.Sync()
+		}
+
+		if handleEvent(ev) {
+			continue
 		}
 	}
 }
 
 func main() {
-	s, err := tcell.NewScreen()
+	screen, err := tcell.NewScreen()
 	check(err)
 
-	check(s.Init())
-	defer s.Fini()
-
-	ch := make(chan struct{})
+	check(screen.Init())
+	defer screen.Fini()
 
 	inputStyle := tcell.StyleDefault.Reverse(true)
 	selectedStyle := tcell.StyleDefault.Background(tcell.ColorDarkGray).Foreground(tcell.ColorWhite)
@@ -63,9 +62,8 @@ func main() {
 	input.SetTextStyle(inputStyle)
 	input.SetLabelStyle(inputStyle)
 	input.SetSelectedStyle(selectedStyle)
-	inputs = append(inputs, input)
 
-	go eventLoop(s, ch)
+	handlers = append(handlers, input)
 
 	titleStyle := tcell.StyleDefault.Background(tcell.ColorWhite).Foreground(tcell.ColorBlack)
 
@@ -95,37 +93,39 @@ func main() {
 	content.SetWrap(true)
 	content.SetStyle(contentStyle)
 
-loop:
+	ch := make(chan struct{})
+	go eventLoop(screen, ch)
+
 	for {
 		select {
 		case <-ch:
-			break loop
+			return
 		case <-time.After(40 * time.Millisecond):
 		}
 
-		w, h := s.Size()
+		w, h := screen.Size()
 
 		screenRect := layout.Rect{X: 0, Y: 0, W: w, H: h}
 
 		// header
 
 		headerRect := screenRect.Align(layout.Top | layout.Left).WidthOf(screenRect).Height(1)
-		Clear(s, titleStyle, headerRect)
-		title.Draw(s, layout.Text(title.Text()).AlignTo(headerRect, layout.Left).ShiftLeft(1))
+		Clear(screen, titleStyle, headerRect)
+		title.Draw(screen, layout.Text(title.Text()).AlignTo(headerRect, layout.Left).ShiftLeft(1))
 
 		// body
 
 		bodyRect := screenRect.PadVertical(1)
-		Clear(s, contentStyle, bodyRect)
+		Clear(screen, contentStyle, bodyRect)
 
-		content.Draw(s, bodyRect.Pad(4))
-		//graph.Draw(s, bodyRect.Pad(4))
+		content.Draw(screen, bodyRect.Pad(4))
+		//graph.Draw(screen, bodyRect.Pad(4))
 
 		// footer
 
-		renderFooter(s, screenRect, input)
+		renderFooter(screen, screenRect, input)
 
-		s.Show()
+		screen.Show()
 	}
 }
 
@@ -136,35 +136,47 @@ func renderFooter(s tcell.Screen, screenRect layout.Rect, input *Textbox) {
 	inputRect := footerRect.PadLeft(1)
 	input.Draw(s, inputRect)
 
-	if len(input.getText()) > 0 {
-		items := []string{"hello", "world", "testing"}
+	renderMenu(s, input, inputRect)
+}
 
-		bg := tcell.StyleDefault.Background(tcell.ColorGray)
-		first := tcell.StyleDefault.Background(tcell.ColorWhite).Foreground(tcell.ColorBlack)
-		second := tcell.StyleDefault.Background(tcell.ColorDimGray).Foreground(tcell.ColorWhite)
+func renderMenu(s tcell.Screen, input *Textbox, inputRect layout.Rect) {
+	if len(input.Text()) == 0 {
+		return
+	}
 
-		style := func(i int) tcell.Style {
-			if i == -1 {
-				return bg
-			}
-			if i%2 == 1 {
-				return first
-			}
-			return second
+	items := []string{"hello", "world", "testing"}
+
+	bg := tcell.StyleDefault.Background(tcell.ColorGray)
+	first := tcell.StyleDefault.Background(tcell.ColorWhite).Foreground(tcell.ColorBlack)
+	second := tcell.StyleDefault.Background(tcell.ColorDimGray).Foreground(tcell.ColorWhite)
+
+	style := func(i int) tcell.Style {
+		if i == -1 {
+			return bg
 		}
-
-		menuRect := layout.Rect{X: input.cursorX(inputRect) + 1, Y: footerRect.Y - len(items), W: 30, H: len(items)}
-		Clear(s, style(-1), menuRect)
-
-		for i := range items {
-			itemRect := menuRect.Align(layout.Top | layout.Left).ShiftTop(i).WidthOf(menuRect).Height(1)
-			itemStyle := style(i)
-
-			Clear(s, itemStyle, itemRect)
-
-			item := NewText(" " + items[i] + " ")
-			item.SetStyle(itemStyle)
-			item.Draw(s, itemRect)
+		if i%2 == 1 {
+			return first
 		}
+		return second
+	}
+
+	menuRect := layout.Rect{
+		X: input.cursorX(inputRect) + 1,
+		Y: inputRect.Y - len(items),
+		W: 30,
+		H: len(items),
+	}
+
+	Clear(s, style(-1), menuRect)
+
+	for i := range items {
+		itemRect := menuRect.Align(layout.Top | layout.Left).ShiftTop(i).WidthOf(menuRect).Height(1)
+		itemStyle := style(i)
+
+		Clear(s, itemStyle, itemRect)
+
+		item := NewText(" " + items[i] + " ")
+		item.SetStyle(itemStyle)
+		item.Draw(s, itemRect)
 	}
 }

@@ -97,9 +97,8 @@ func (t *Textbox) HandleEvent(e tcell.Event) bool {
 	}
 }
 
-func (t *Textbox) getText() string {
-	return string(t.buf)
-}
+func (t Textbox) Text() string  { return string(t.buf) }
+func (t Textbox) Label() string { return t.label.Text() }
 
 func (t *Textbox) selectedArea() (start int, end int) {
 	start = t.ptr // selection start index
@@ -123,7 +122,6 @@ func (t *Textbox) Draw(s tcell.Screen, r layout.Rect) {
 	r = r.PadLeft(t.label.Width())
 
 	var styleFunc StyleFunc
-
 	if t.style != nil {
 		if t.selected != tcell.StyleDefault {
 			start, end := t.selectedArea()
@@ -140,7 +138,6 @@ func (t *Textbox) Draw(s tcell.Screen, r layout.Rect) {
 	}
 
 	t.text.SetStyleFunc(styleFunc)
-
 	t.text.SetText(string(t.buf))
 	t.text.Draw(s, r)
 
@@ -435,6 +432,9 @@ func (t *Textbox) setText(text string) {
 func (t *Textbox) SetLabelStyleFunc(style StyleFunc) { t.label.SetStyleFunc(style) }
 func (t *Textbox) SetLabelStyle(style tcell.Style)   { t.label.SetStyle(style) }
 
-func (t *Textbox) SetTextStyle(style tcell.Style)     { t.style = func(int) tcell.Style { return style } }
-func (t *Textbox) SetTextStyleFunc(style StyleFunc)   { t.style = style }
+func (t *Textbox) SetTextStyleFunc(style StyleFunc) { t.style = style }
+func (t *Textbox) SetTextStyle(style tcell.Style) {
+	t.SetTextStyleFunc(func(int) tcell.Style { return style })
+}
+
 func (t *Textbox) SetSelectedStyle(style tcell.Style) { t.selected = style }

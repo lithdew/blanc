@@ -5,13 +5,15 @@ import (
 	"github.com/gdamore/tcell"
 )
 
-type InputListener interface {
-	tcell.EventHandler
+type EventHandlerFunc func(ev tcell.Event) bool
+
+func (fn EventHandlerFunc) HandleEvent(ev tcell.Event) bool {
+	return fn(ev)
 }
 
 var _ heap.Interface = (*InputQueue)(nil)
 
-type InputQueue []InputListener
+type InputQueue []tcell.EventHandler
 
 func (q InputQueue) Len() int            { return len(q) }
 func (q InputQueue) Less(i, j int) bool  { panic("implement me") }
