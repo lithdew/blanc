@@ -65,8 +65,7 @@ func main() {
 
 	titleStyle := tcell.StyleDefault.Background(tcell.ColorWhite).Foreground(tcell.ColorBlack)
 
-	titleText := "flatend."
-	title := NewText(titleText)
+	title := NewText("flatend.")
 	title.SetStyle(titleStyle.Bold(true))
 
 	contentStyle := titleStyle.Reverse(true)
