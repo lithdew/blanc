@@ -8,6 +8,9 @@ import (
 )
 
 type Textbox struct {
+	selected tcell.Style
+	style    StyleFunc
+
 	label Text
 	text  Text
 
@@ -20,7 +23,12 @@ type Textbox struct {
 }
 
 func newTextbox() *Textbox {
-	return &Textbox{pos: -1, dir: -1}
+	return &Textbox{
+		selected: tcell.StyleDefault.Reverse(true),
+
+		pos: -1,
+		dir: -1,
+	}
 }
 
 func (t *Textbox) cursorX(r layout.Rect) int {
@@ -105,24 +113,30 @@ func (t *Textbox) selectedArea() (start int, end int) {
 	return start, end
 }
 
-func (t *Textbox) render(s tcell.Screen, style tcell.Style, r layout.Rect) {
+func (t *Textbox) Draw(s tcell.Screen, r layout.Rect) {
 	if r.H < 1 {
 		return
 	}
 
-	t.label.SetStyle(style)
 	t.label.Draw(s, r)
 
 	r = r.PadLeft(t.label.Width())
-	start, end := t.selectedArea()
 
-	selected := tcell.StyleDefault.Background(tcell.ColorDarkGray).Foreground(tcell.ColorWhite)
+	var styleFunc StyleFunc
 
-	styleFunc := func(i int) tcell.Style {
-		if t.pos != -1 && i >= start && i <= end {
-			return selected
+	if t.style != nil {
+		if t.selected != tcell.StyleDefault {
+			start, end := t.selectedArea()
+
+			styleFunc = func(i int) tcell.Style {
+				if t.pos != -1 && i >= start && i <= end {
+					return t.selected
+				}
+				return t.style(i)
+			}
+		} else {
+			styleFunc = t.style
 		}
-		return style
 	}
 
 	t.text.SetStyleFunc(styleFunc)
@@ -417,3 +431,10 @@ func (t *Textbox) setText(text string) {
 		t.size += runewidth.RuneWidth(t.buf[i])
 	}
 }
+
+func (t *Textbox) SetLabelStyleFunc(style StyleFunc) { t.label.SetStyleFunc(style) }
+func (t *Textbox) SetLabelStyle(style tcell.Style)   { t.label.SetStyle(style) }
+
+func (t *Textbox) SetTextStyle(style tcell.Style)     { t.style = func(int) tcell.Style { return style } }
+func (t *Textbox) SetTextStyleFunc(style StyleFunc)   { t.style = style }
+func (t *Textbox) SetSelectedStyle(style tcell.Style) { t.selected = style }

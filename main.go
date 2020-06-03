@@ -55,8 +55,14 @@ func main() {
 
 	ch := make(chan struct{})
 
+	inputStyle := tcell.StyleDefault.Reverse(true)
+	selectedStyle := tcell.StyleDefault.Background(tcell.ColorDarkGray).Foreground(tcell.ColorWhite)
+
 	input := newTextbox()
 	input.setLabel(">>> ")
+	input.SetTextStyle(inputStyle)
+	input.SetLabelStyle(inputStyle)
+	input.SetSelectedStyle(selectedStyle)
 	inputs = append(inputs, input)
 
 	go eventLoop(s, ch)
@@ -124,13 +130,11 @@ loop:
 }
 
 func renderFooter(s tcell.Screen, screenRect layout.Rect, input *Textbox) {
-	style := tcell.StyleDefault.Reverse(true)
-
 	footerRect := screenRect.Align(layout.Bottom | layout.Left).WidthOf(screenRect).Height(1)
-	Clear(s, style, footerRect)
+	Clear(s, tcell.StyleDefault.Reverse(true), footerRect)
 
 	inputRect := footerRect.PadLeft(1)
-	input.render(s, style, inputRect)
+	input.Draw(s, inputRect)
 
 	if len(input.getText()) > 0 {
 		items := []string{"hello", "world", "testing"}
