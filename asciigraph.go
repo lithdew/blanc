@@ -1,4 +1,4 @@
-package main
+package blanc
 
 import (
 	"github.com/gdamore/tcell"

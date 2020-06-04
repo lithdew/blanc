@@ -1,4 +1,4 @@
-package main
+package blanc
 
 import (
 	"github.com/dgryski/go-linebreak"
@@ -21,7 +21,7 @@ type Text struct {
 	width int
 }
 
-func NewText(text string) Text { return Text{text: text, lastW: -1} }
+func NewText(text string) Text { return Text{text: text, buf: []rune(text), lastW: -1} }
 
 func (t *Text) SetText(text string) {
 	t.dirty = true
@@ -30,7 +30,7 @@ func (t *Text) SetText(text string) {
 }
 
 func (t *Text) SetWrap(wrap bool) {
-	t.dirty = t.wrap != wrap
+	t.dirty = !t.wrap && wrap
 	t.wrap = wrap
 }
 

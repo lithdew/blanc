@@ -26,7 +26,7 @@ func Align(parent, child Rect, a AlignType) Rect {
 	case a.Is(Right):
 		child.X = parent.Right() + 1
 	case a.Is(Center):
-		child.X = parent.CenterX() - child.W/2
+		child.X = parent.CenterX()
 	}
 
 	switch {
@@ -35,7 +35,7 @@ func Align(parent, child Rect, a AlignType) Rect {
 	case a.Is(Bottom):
 		child.Y = parent.Bottom() + 1
 	case a.Is(Center):
-		child.Y = parent.CenterY() - child.H/2
+		child.Y = parent.CenterY()
 	}
 	return child
 }
